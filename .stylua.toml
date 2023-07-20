@@ -1,0 +1,11 @@
+# Docs at https://github.com/JohnnyMorganz/StyLua#options
+column_width = 120
+line_endings = "Unix" # Unix, Windows
+indent_type = "Spaces" # Spaces, Tabs
+indent_width = 4
+quote_style = "AutoPreferDouble" # AutoPreferDouble, AutoPreferSingle, ForceDouble, ForceSingle
+call_parentheses = "Always" # Always, NoSingleString, NoSingleTable, None
+collapse_simple_statement = "Never" # Never, FunctionOnly, ConditionalOnly, Always
+
+[sort_requires]
+enabled = false

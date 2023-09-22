@@ -31,6 +31,7 @@ local function parse(args)
         local opt = vim.split(arg, "=")
         opts[opt[1]] = opt[2]
     end
+    return opts
 end
 
 --- Validate parsed arguments for the `:Build` command

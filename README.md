@@ -4,10 +4,11 @@ Simple building plugin for neovim inspired by the Build Tool from Sublime Text.
 
 ## Installation
 
-Using [lazy.nvim](https://github.com/folke/lazy.nvim)
+Using [lazy.nvim](https://github.com/folke/lazy.nvim) *(recommended)*
 ```lua
 {
     "trimclain/builder.nvim",
+    cmd = "Build",
     -- stylua: ignore
     keys = {
         { "<C-b>", function() require("builder").build() end, desc = "Build" }
@@ -15,27 +16,47 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim)
     config = true,
 }
 ```
+Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+```lua
+use {
+    "trimclain/builder.nvim",
+    config = function()
+        require('builder').setup()
+        vim.keymap.set("n", "<C-b>", ":Build<cr>", { silent = true, desc = "Build" })
+    end
+}
+```
 
 
 ## Configuration
 
-Following is the default configuration
+Builder comes with the following defaults:
 ```lua
 {
-    position = "bot", -- "bot, top or vert"
-    size = 10, -- size in lines for position = "bot" and in characters for position = "vert"
-    line_no = false, -- show line numbers in build buffer
-    autosave = true, -- automatically save before building
-    enable_internals = true, -- use neovim's internal `:source %` on lua and vim files
+    -- location of Builder buffer; opts: "bot", "top" or "vert"
+    position = "bot",
+    -- number of lines for position = "bot" / characters for position = "vert",
+    -- by default the size is 30% of nvim width for "vert" or 25% of height for "bot"
+    size = false,
+     -- show/hide line numbers in the Builder buffer
+    line_no = false,
+    -- automatically save before building
+    autosave = true,
+    -- use neovim's built-in `:source %` for *.lua and *.vim
+    enable_builtin = true,
+    -- commands for building each filetype; see below
     commands = {},
 }
+
+
 ```
 When creating a command, there are following available variables
-- `%` or `$file` — current file
+- `%` — path to the current file from the current working directory
+- `$file` — current file name with extension
 - `$basename` — basename of the file
+- `$ext` — current file extension
 - `$path` — full path to the file
 - `$dir` — current working directory
-- `$ext` — current file extension
 
 This is an example of what `commands` could look like
 ```lua
@@ -45,7 +66,7 @@ This is an example of what `commands` could look like
         go = "go run %",
         java = "java %",
         javascript = "node %",
-        -- lua = "lua %", -- this will overwrite enable_internals
+        -- lua = "lua %", -- this will override enable_builtin for lua
         markdown = "glow %",
         python = "python %",
         rust = "cargo run",
@@ -54,8 +75,6 @@ This is an example of what `commands` could look like
         zsh = "zsh %",
     },
 ```
-
-
 
 ## Credit
 

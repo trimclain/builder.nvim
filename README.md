@@ -1,6 +1,11 @@
 # builder.nvim
 Simple building plugin for neovim inspired by the Build Tool from Sublime Text.
 
+## Demo
+
+![image](https://github.com/trimclain/builder.nvim/assets/84108846/e5b7382a-bab1-4a00-93af-8a66f070bc90)
+
+
 
 ## Installation
 

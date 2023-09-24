@@ -51,9 +51,23 @@ local function validate(opts)
             return false
         end
     end
-    -- TODO: handle invalid types (e.g. size is not a number)
+    -- handle invalid position
+    if opts.position then
+        local allowed_positions = { "bot", "top", "vert" }
+        local position_valid = false
+        for _, position in pairs(allowed_positions) do
+            if opts.position == position then
+                position_valid = true
+                break
+            end
+        end
+        if not position_valid then
+            error("Error: invalid position: " .. opts.position .. "\nAllowed positions: " .. vim.inspect(allowed_positions))
+            return false
+        end
+    end
 
-    -- convert size to number
+    -- convert size to number (tonumber returns nil if the string is not a number)
     opts.size = opts.size and tonumber(opts.size)
     return opts
 end

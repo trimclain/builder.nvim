@@ -1,10 +1,10 @@
 # builder.nvim
 Simple building plugin for neovim inspired by the Build Tool from Sublime Text.
 
+
 ## Demo
 
 https://github.com/trimclain/builder.nvim/assets/84108846/d412e43e-f19a-4a1e-95a6-1bf53d18d227
-
 
 
 ## Installation
@@ -47,6 +47,8 @@ Builder comes with the following defaults:
     line_no = false,
     -- automatically save before building
     autosave = true,
+    -- keymaps to close the builder buffer, same format as for vim.keymap.set
+    close_keymaps = { "q" },
     -- use neovim's built-in `:source %` for *.lua and *.vim
     enable_builtin = true,
     -- commands for building each filetype; see below
@@ -80,6 +82,18 @@ This is an example of what `commands` could look like
         zsh = "zsh %",
     },
 ```
+
+## Usage
+Run `:Build` to build/run current file/project using the command from `commands` table.
+You can also pass different `size` and `position` arguments:
+```
+:Build size=35 position=vert
+```
+or
+```
+:lua require("builder").build({ size = 35, position = "vert" })
+```
+
 
 ## Credit
 

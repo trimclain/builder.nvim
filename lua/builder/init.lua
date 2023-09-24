@@ -5,6 +5,7 @@ local config = {
     size = false, -- number of lines for position = "bot" / characters for position = "vert"
     line_no = false, -- show line numbers
     autosave = true, -- automatically save before building
+    close_keymaps = { "q" }, -- keymaps to close the builder buffer
     enable_builtin = true, -- use neovim's built-in `:source %` for *.lua and *.vim
     commands = {}, -- commands for building each filetype
 }
@@ -57,6 +58,26 @@ local function validate(opts)
     return opts
 end
 
+--- Replace placeholders in the command with actual values
+---@param cmd string command with placeholders
+---@return string cmd command with placeholders replaced
+local function substitute(cmd)
+    -- :t is needed because when you open a file using a file tree, % becomes full path to the file
+    cmd = cmd:gsub("%%", vim.fn.expand("%"))
+    cmd = cmd:gsub("$file", vim.fn.expand("%:t"))
+    cmd = cmd:gsub("$ext", vim.fn.expand("%:e"))
+    cmd = cmd:gsub("$basename", vim.fn.expand("%:t:r"))
+    cmd = cmd:gsub("$path", vim.fn.expand("%:p"))
+    cmd = cmd:gsub("$dir", vim.fn.expand("%:p:h"))
+    return cmd
+end
+
+local function set_keymaps(buf)
+    for _, key in ipairs(config.close_keymaps) do
+        vim.keymap.set("n", key, "<cmd>close<cr>", { buffer = buf, silent = true })
+    end
+end
+
 function M.setup(opts)
     config = vim.tbl_deep_extend("force", config, opts or {})
     local default_size
@@ -78,17 +99,6 @@ function M.setup(opts)
         nargs = "?",
         desc = "Build",
     })
-end
-
-local function substitute(cmd)
-    -- :t is needed because when you open a file using a file tree, % becomes full path to the file
-    cmd = cmd:gsub("%%", vim.fn.expand("%"))
-    cmd = cmd:gsub("$file", vim.fn.expand("%:t"))
-    cmd = cmd:gsub("$ext", vim.fn.expand("%:e"))
-    cmd = cmd:gsub("$basename", vim.fn.expand("%:t:r"))
-    cmd = cmd:gsub("$path", vim.fn.expand("%:p"))
-    cmd = cmd:gsub("$dir", vim.fn.expand("%:p:h"))
-    return cmd
 end
 
 function M.build(opts)
@@ -117,7 +127,6 @@ function M.build(opts)
 
     -- preconfigure builder buffer
     local position = opts.position or config.position
-    -- TODO: update size on vim resize (add autocmd)
     local size = opts.size or config.size
 
     -- build/run the buffer
@@ -126,7 +135,7 @@ function M.build(opts)
     -- configure created buffer
     local buf = vim.api.nvim_get_current_buf()
     vim.bo[buf].buflisted = false
-    vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf, silent = true })
+    set_keymaps(buf)
     if not config.line_no then
         vim.opt_local.number = false
         vim.opt_local.relativenumber = false

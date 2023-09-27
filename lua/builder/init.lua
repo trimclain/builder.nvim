@@ -1,8 +1,8 @@
 local M = {}
 
 local config = {
-    position = "bot", -- "bot, top or vert"
-    size = false, -- number of lines for position = "bot" / characters for position = "vert"
+    type = "bot", -- "bot", "top", "vert" or "float"
+    size = false, -- number of lines for type = "bot" / characters for type = "vert"
     line_no = false, -- show line numbers
     autosave = true, -- automatically save before building
     close_keymaps = { "q" }, -- keymaps to close the builder buffer
@@ -12,7 +12,7 @@ local config = {
 
 -- send notifications
 -- stylua: ignore start
-local notify = function(msg, type) vim.notify(msg, type, { title = "Builder" }) end
+local notify = function(msg, log_level) vim.notify(msg, log_level, { title = "Builder" }) end
 local info = function(msg) notify(msg, vim.log.levels.INFO) end
 local error = function(msg) notify(msg, vim.log.levels.ERROR) end
 -- stylua: ignore end
@@ -44,25 +44,25 @@ local function validate(opts)
     end
 
     -- handle invalid options
-    local allowed_opts = { "size", "position" }
+    local allowed_opts = { "size", "type" }
     for key, _ in pairs(opts) do
         if not vim.tbl_contains(allowed_opts, key) then
             error("Error: invalid option: " .. key .. "\nAllowed options: " .. vim.inspect(allowed_opts))
             return false
         end
     end
-    -- handle invalid position
-    if opts.position then
-        local allowed_positions = { "bot", "top", "vert" }
-        local position_valid = false
-        for _, position in pairs(allowed_positions) do
-            if opts.position == position then
-                position_valid = true
+    -- handle invalid type
+    if opts.type then
+        local allowed_types = { "bot", "top", "vert", "float" }
+        local type_valid = false
+        for _, type in pairs(allowed_types) do
+            if opts.type == type then
+                type_valid = true
                 break
             end
         end
-        if not position_valid then
-            error("Error: invalid position: " .. opts.position .. "\nAllowed positions: " .. vim.inspect(allowed_positions))
+        if not type_valid then
+            error("Error: invalid type: " .. opts.type .. "\nAllowed types: " .. vim.inspect(allowed_types))
             return false
         end
     end
@@ -96,7 +96,7 @@ function M.setup(opts)
     config = vim.tbl_deep_extend("force", config, opts or {})
     local default_size
     -- make size 30% of width for "vert" or 25% of height for "bot"
-    if config.position == "vert" then
+    if config.type == "vert" then
         default_size = math.floor(vim.o.columns * 0.3)
     else
         default_size = math.floor(vim.o.lines * 0.25)
@@ -140,11 +140,11 @@ function M.build(opts)
     cmd = substitute(cmd)
 
     -- preconfigure builder buffer
-    local position = opts.position or config.position
+    local type = opts.type or config.type
     local size = opts.size or config.size
 
     -- build/run the buffer
-    vim.cmd(position .. " " .. size .. "new | term " .. cmd)
+    vim.cmd(type .. " " .. size .. "new | term " .. cmd)
 
     -- configure created buffer
     local buf = vim.api.nvim_get_current_buf()

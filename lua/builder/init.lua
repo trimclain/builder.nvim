@@ -88,26 +88,20 @@ local function create_buffer(type, size)
 end
 
 --- Run the command and append the output to the buffer
----@param cmd string command to run
+---@param command string command to run
 ---@param bufnr number number of buffer to append the output to
-local function run_command(cmd, bufnr)
-    local function append_data_to_buffer(_, data)
-        if data then
-            -- stylua: ignore
-            data = vim.tbl_filter(function(item) return item ~= "" end, data)
-            if not vim.tbl_isempty(data) then
-                vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, data)
-                -- TODO: calculate timer to show "Finished" after the job is done
-                -- vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "Finished TBD ms." })
-            end
-        end
-    end
+local function run_command(command, bufnr)
     -- vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "Output:" })
-    vim.fn.jobstart(vim.split(cmd, " "), {
-        stdout_buffered = true,
-        on_stdout = append_data_to_buffer,
-        on_stderr = append_data_to_buffer,
-    })
+    local cmdtable = vim.split(command, "&&")
+    for _, cmd in ipairs(cmdtable) do
+        ---@diagnostic disable-next-line: missing-fields
+        local obj = vim.system(vim.split(vim.trim(cmd), " "), { text = true }):wait()
+        local data = obj.stdout ~= "" and obj.stdout or obj.stderr or ""
+        local datatable = vim.split(vim.trim(data), "\n")
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, datatable)
+        -- TODO: calculate timer to show "Finished" after the job is done
+        -- vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "[Finished TBD ms]" })
+    end
 end
 
 function M.build(opts)

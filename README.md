@@ -47,6 +47,8 @@ Builder comes with the following defaults:
         height = 0.8,
         width = 0.8,
     },
+    -- which border to use for the floating window (see `:help nvim_open_win`)
+    float_border = "none",
      -- show/hide line numbers in the Builder buffer
     line_number = false,
     -- automatically save before building

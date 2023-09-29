@@ -10,6 +10,7 @@ local config = {
         height = 0.8,
         width = 0.8,
     },
+    float_border = "none", -- which border to use for the floating window from `:h nvim_open_win`
     line_number = false, -- show line numbers the builder buffer
     autosave = true, -- automatically save before building
     close_keymaps = { "q", "<Esc>" }, -- keymaps to close the builder buffer
@@ -62,8 +63,9 @@ local function create_buffer(type, size)
             height = dimensions.height,
             row = dimensions.row,
             col = dimensions.col,
-            -- border = config.ui.float.border,
-            -- title = "TESTING",
+            border = config.float_border,
+            title = " Builder ",
+            title_pos = "center",
         })
         if config.line_number then
             vim.opt_local.number = true

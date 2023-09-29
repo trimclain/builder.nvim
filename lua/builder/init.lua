@@ -1,8 +1,15 @@
 local M = {}
 
+local Util = require("builder.util")
+
 local config = {
     type = "bot", -- "bot", "top", "vert" or "float"
-    size = false, -- number of lines for type = "bot" / characters for type = "vert"
+    -- number of lines for type = "bot" / characters for type = "vert"
+    size = 0.25, -- percentage of width/height for type = "vert"/"bot" between 0 and 1
+    float_size = {
+        height = 0.8,
+        width = 0.8,
+    },
     line_no = false, -- show line numbers
     autosave = true, -- automatically save before building
     close_keymaps = { "q" }, -- keymaps to close the builder buffer
@@ -10,102 +17,17 @@ local config = {
     commands = {}, -- commands for building each filetype
 }
 
--- send notifications
--- stylua: ignore start
-local notify = function(msg, log_level) vim.notify(msg, log_level, { title = "Builder" }) end
-local info = function(msg) notify(msg, vim.log.levels.INFO) end
-local error = function(msg) notify(msg, vim.log.levels.ERROR) end
--- stylua: ignore end
-
---- Parse arguments for the `:Build` command
----@param args string arguments from cmd.args (see `:help nvim_create_user_command`)
----@return table opts parsed options to pass to `:Build`
-local function parse(args)
-    -- remove "Build" from args
-    local parts = vim.split(vim.trim(args), "%s+")
-    if parts[1]:find("Build") then
-        table.remove(parts, 1)
-    end
-    -- create opts table
-    local opts = {}
-    for _, arg in pairs(parts) do
-        local opt = vim.split(arg, "=")
-        opts[opt[1]] = opt[2]
-    end
-    return opts
-end
-
---- Validate parsed arguments for the `:Build` command
----@param opts table parsed arguments from cmd.args (see `:help nvim_create_user_command`)
----@return table|boolean opts validated options to pass to `:Build` or false if there was an error
-local function validate(opts)
-    if opts == nil then
-        return {}
-    end
-
-    -- handle invalid options
-    local allowed_opts = { "size", "type" }
-    for key, _ in pairs(opts) do
-        if not vim.tbl_contains(allowed_opts, key) then
-            error("Error: invalid option: " .. key .. "\nAllowed options: " .. vim.inspect(allowed_opts))
-            return false
-        end
-    end
-    -- handle invalid type
-    if opts.type then
-        local allowed_types = { "bot", "top", "vert", "float" }
-        local type_valid = false
-        for _, type in pairs(allowed_types) do
-            if opts.type == type then
-                type_valid = true
-                break
-            end
-        end
-        if not type_valid then
-            error("Error: invalid type: " .. opts.type .. "\nAllowed types: " .. vim.inspect(allowed_types))
-            return false
-        end
-    end
-
-    -- convert size to number (tonumber returns nil if the string is not a number)
-    opts.size = opts.size and tonumber(opts.size)
-    return opts
-end
-
---- Replace placeholders in the command with actual values
----@param cmd string command with placeholders
----@return string cmd command with placeholders replaced
-local function substitute(cmd)
-    -- :t is needed because when you open a file using a file tree, % becomes full path to the file
-    cmd = cmd:gsub("%%", vim.fn.expand("%"))
-    cmd = cmd:gsub("$file", vim.fn.expand("%:t"))
-    cmd = cmd:gsub("$ext", vim.fn.expand("%:e"))
-    cmd = cmd:gsub("$basename", vim.fn.expand("%:t:r"))
-    cmd = cmd:gsub("$path", vim.fn.expand("%:p"))
-    cmd = cmd:gsub("$dir", vim.fn.expand("%:p:h"))
-    return cmd
-end
-
-local function set_keymaps(buf)
-    for _, key in ipairs(config.close_keymaps) do
-        vim.keymap.set("n", key, "<cmd>close<cr>", { buffer = buf, silent = true })
-    end
-end
-
 function M.setup(opts)
     config = vim.tbl_deep_extend("force", config, opts or {})
-    local default_size
-    -- make size 30% of width for "vert" or 25% of height for "bot"
-    if config.type == "vert" then
-        default_size = math.floor(vim.o.columns * 0.3)
-    else
-        default_size = math.floor(vim.o.lines * 0.25)
-    end
-    config.size = opts.size or default_size
+
+    -- TODO: add validate_config()
+    -- if not validate(config) then
+    --     return
+    -- end
 
     -- Create the `:Build` command
     vim.api.nvim_create_user_command("Build", function(cmd)
-        local options = validate(parse(cmd.args))
+        local options = Util.validate(Util.parse(cmd.args))
         if options then
             M.build(options)
         end
@@ -115,8 +37,81 @@ function M.setup(opts)
     })
 end
 
+--- Set mapping for closing the builder buffer
+---@param bufnr number buffer number
+local function set_keymaps(bufnr)
+    for _, key in ipairs(config.close_keymaps) do
+        -- stylua: ignore
+        vim.keymap.set("n", key, function() vim.api.nvim_win_close(0, true) end, { buffer = bufnr, silent = true })
+    end
+end
+
+--- Create a buffer for the builder
+---@param type string "bot", "top", "vert" or "float"
+---@param size number amount of lines for type = "bot" / characters for type = "vert"
+---@return number bufnr the number of the created buffer
+local function create_buffer(type, size)
+    local bufnr
+    if type == "float" then
+        bufnr = vim.api.nvim_create_buf(false, true)
+        local dimensions = Util.get_float_dimensions(config.float_size)
+        vim.api.nvim_open_win(bufnr, true, {
+            style = "minimal",
+            relative = "editor",
+            width = dimensions.width,
+            height = dimensions.height,
+            row = dimensions.row,
+            col = dimensions.col,
+            -- border = config.ui.float.border,
+            -- title = "TESTING",
+        })
+    else
+        size = type == "vert" and math.floor(vim.o.columns * size) or math.floor(vim.o.lines * size)
+        -- create the window
+        vim.cmd(type .. " " .. size .. "new")
+        bufnr = vim.api.nvim_get_current_buf()
+        vim.bo[bufnr].buflisted = false
+
+        -- make the buffer temporary
+        vim.opt_local.buftype = "nofile"
+        vim.opt_local.bufhidden = "hide"
+        vim.opt_local.swapfile = false
+
+        if not config.line_no then
+            vim.opt_local.number = false
+            vim.opt_local.relativenumber = false
+        end
+    end
+
+    set_keymaps(bufnr)
+    return bufnr
+end
+
+--- Run the command and append the output to the buffer
+---@param cmd string command to run
+---@param bufnr number number of buffer to append the output to
+local function run_command(cmd, bufnr)
+    local function append_data_to_buffer(_, data)
+        if data then
+            -- stylua: ignore
+            data = vim.tbl_filter(function(item) return item ~= "" end, data)
+            if not vim.tbl_isempty(data) then
+                vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, data)
+                -- TODO: calculate timer to show "Finished" after the job is done
+                -- vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "Finished TBD ms." })
+            end
+        end
+    end
+    -- vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "Output:" })
+    vim.fn.jobstart(vim.split(cmd, " "), {
+        stdout_buffered = true,
+        on_stdout = append_data_to_buffer,
+        on_stderr = append_data_to_buffer,
+    })
+end
+
 function M.build(opts)
-    opts = validate(opts)
+    opts = Util.validate(opts)
 
     -- before building
     if config.autosave then
@@ -134,26 +129,18 @@ function M.build(opts)
 
     -- parse cmd
     if not cmd then
-        info('Building "' .. filetype .. '" is not configured')
+        Util.info('Building "' .. filetype .. '" is not configured')
         return
     end
-    cmd = substitute(cmd)
+    cmd = Util.substitute(cmd)
 
     -- preconfigure builder buffer
     local type = opts.type or config.type
     local size = opts.size or config.size
 
     -- build/run the buffer
-    vim.cmd(type .. " " .. size .. "new | term " .. cmd)
-
-    -- configure created buffer
-    local buf = vim.api.nvim_get_current_buf()
-    vim.bo[buf].buflisted = false
-    set_keymaps(buf)
-    if not config.line_no then
-        vim.opt_local.number = false
-        vim.opt_local.relativenumber = false
-    end
+    local bufnr = create_buffer(type, size)
+    run_command(cmd, bufnr)
 end
 
 return M

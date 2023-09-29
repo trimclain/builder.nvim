@@ -38,11 +38,15 @@ use {
 Builder comes with the following defaults:
 ```lua
 {
-    -- location of Builder buffer; opts: "bot", "top" or "vert"
+    -- location of Builder buffer; opts: "bot", "top", "vert" or float
     position = "bot",
-    -- number of lines for position = "bot" / characters for position = "vert",
-    -- by default the size is 30% of nvim width for "vert" or 25% of height for "bot"
-    size = false,
+    -- percentage of width/height for type = "vert"/"bot" between 0 and 1
+    size = 0.25,
+    -- size of the floating window for type = "float"
+    float_size = {
+        height = 0.8,
+        width = 0.8,
+    },
      -- show/hide line numbers in the Builder buffer
     line_no = false,
     -- automatically save before building
@@ -97,4 +101,5 @@ or
 
 ## Credit
 
-- [jaq.nvim](https://github.com/is0n/jaq-nvim)
+- [jaq.nvim](https://github.com/is0n/jaq-nvim) -- for giving me motivation to do it better
+- [tj's video](https://www.youtube.com/watch?v=9gUatBHuXE0) -- for showing me how to do it better

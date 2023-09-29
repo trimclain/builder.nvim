@@ -88,15 +88,16 @@ This is an example of what `commands` could look like
     },
 ```
 
+
 ## Usage
-Run `:Build` to build/run current file/project using the command from `commands` table.
-You can also pass different `size` and `position` arguments:
+Run `:Build` to build/run current file/project using the command for current filetype from `commands` table.
+You can also pass different `size` and `type` arguments:
 ```
-:Build size=35 position=vert
+:Build size=0.4 type=vert
 ```
 or
 ```
-:lua require("builder").build({ size = 35, position = "vert" })
+:lua require("builder").build({ type = "float" })
 ```
 
 

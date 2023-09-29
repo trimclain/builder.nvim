@@ -55,9 +55,8 @@ Builder comes with the following defaults:
     autosave = true,
     -- keymaps to close the builder buffer, same format as for vim.keymap.set
     close_keymaps = { "q", "<Esc>" },
-    -- use neovim's built-in `:source %` for *.lua and *.vim
-    enable_builtin = true,
     -- commands for building each filetype; see below
+    -- for lua and vim filetypes `:source %` will be used by default
     commands = {},
 }
 
@@ -79,7 +78,7 @@ This is an example of what `commands` could look like
         go = "go run %",
         java = "java %",
         javascript = "node %",
-        -- lua = "lua %", -- this will override enable_builtin for lua
+        -- lua = "lua %", -- this will override the default `:source %` for lua files
         markdown = "glow %",
         python = "python %",
         rust = "cargo run",

@@ -14,7 +14,7 @@ local config = {
     line_number = false, -- show line numbers the builder buffer
     autosave = true, -- automatically save before building
     close_keymaps = { "q", "<Esc>" }, -- keymaps to close the builder buffer
-    enable_builtin = true, -- use neovim's built-in `:source %` for *.lua and *.vim
+    -- for lua and vim filetypes `:source %` will be used by default
     commands = {}, -- commands for building each filetype
 }
 

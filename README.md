@@ -39,7 +39,7 @@ Builder comes with the following defaults:
 ```lua
 {
     -- location of Builder buffer; opts: "bot", "top", "vert" or float
-    position = "bot",
+    type = "bot",
     -- percentage of width/height for type = "vert"/"bot" between 0 and 1
     size = 0.25,
     -- size of the floating window for type = "float"
@@ -48,11 +48,11 @@ Builder comes with the following defaults:
         width = 0.8,
     },
      -- show/hide line numbers in the Builder buffer
-    line_no = false,
+    line_number = false,
     -- automatically save before building
     autosave = true,
     -- keymaps to close the builder buffer, same format as for vim.keymap.set
-    close_keymaps = { "q" },
+    close_keymaps = { "q", "<Esc>" },
     -- use neovim's built-in `:source %` for *.lua and *.vim
     enable_builtin = true,
     -- commands for building each filetype; see below

@@ -12,7 +12,7 @@ local config = {
     },
     line_number = false, -- show line numbers the builder buffer
     autosave = true, -- automatically save before building
-    close_keymaps = { "q" }, -- keymaps to close the builder buffer
+    close_keymaps = { "q", "<Esc>" }, -- keymaps to close the builder buffer
     enable_builtin = true, -- use neovim's built-in `:source %` for *.lua and *.vim
     commands = {}, -- commands for building each filetype
 }
@@ -118,9 +118,9 @@ function M.build(opts)
     -- handle internal commands
     local filetype = vim.bo.filetype
     local cmd = config.commands[filetype]
-    local is_internal = config.enable_builtin and vim.tbl_contains({ "lua", "vim" }, filetype)
+    local is_internal = vim.tbl_contains({ "lua", "vim" }, filetype)
     if is_internal and not cmd then
-        vim.cmd("source %")
+        vim.cmd.source("%")
         return
     end
 

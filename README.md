@@ -4,7 +4,7 @@ Simple building plugin for neovim inspired by the Build Tool from Sublime Text.
 
 ## Demo
 
-https://github.com/trimclain/builder.nvim/assets/84108846/d412e43e-f19a-4a1e-95a6-1bf53d18d227
+https://github.com/trimclain/builder.nvim/assets/84108846/c2468898-e5c6-4786-bf37-9dc780261cc7
 
 
 ## Installation

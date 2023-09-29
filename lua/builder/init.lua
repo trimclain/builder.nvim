@@ -10,7 +10,7 @@ local config = {
         height = 0.8,
         width = 0.8,
     },
-    line_no = false, -- show line numbers
+    line_number = false, -- show line numbers the builder buffer
     autosave = true, -- automatically save before building
     close_keymaps = { "q" }, -- keymaps to close the builder buffer
     enable_builtin = true, -- use neovim's built-in `:source %` for *.lua and *.vim
@@ -65,6 +65,9 @@ local function create_buffer(type, size)
             -- border = config.ui.float.border,
             -- title = "TESTING",
         })
+        if config.line_number then
+            vim.opt_local.number = true
+        end
     else
         size = type == "vert" and math.floor(vim.o.columns * size) or math.floor(vim.o.lines * size)
         -- create the window
@@ -77,7 +80,7 @@ local function create_buffer(type, size)
         vim.opt_local.bufhidden = "hide"
         vim.opt_local.swapfile = false
 
-        if not config.line_no then
+        if not config.line_number then
             vim.opt_local.number = false
             vim.opt_local.relativenumber = false
         end

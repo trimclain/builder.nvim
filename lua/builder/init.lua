@@ -21,14 +21,9 @@ local config = {
 function M.setup(opts)
     config = vim.tbl_deep_extend("force", config, opts or {})
 
-    -- TODO: add validate_config()
-    -- if not validate(config) then
-    --     return
-    -- end
-
     -- Create the `:Build` command
     vim.api.nvim_create_user_command("Build", function(cmd)
-        local options = Util.validate(Util.parse(cmd.args))
+        local options = Util.validate_opts(Util.parse(cmd.args))
         if options then
             M.build(options)
         end
@@ -42,8 +37,9 @@ end
 ---@param bufnr number buffer number
 local function set_keymaps(bufnr)
     for _, key in ipairs(config.close_keymaps) do
-        -- stylua: ignore
-        vim.keymap.set("n", key, function() vim.api.nvim_win_close(0, true) end, { buffer = bufnr, silent = true })
+        vim.keymap.set("n", key, function()
+            vim.api.nvim_win_close(0, true)
+        end, { buffer = bufnr, silent = true })
     end
 end
 
@@ -110,7 +106,7 @@ local function run_command(command, bufnr)
 end
 
 function M.build(opts)
-    opts = Util.validate(opts)
+    opts = Util.validate_opts(opts)
 
     -- before building
     if config.autosave then

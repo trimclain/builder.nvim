@@ -27,7 +27,7 @@ end
 --- Validate parsed arguments for the `:Build` command (currently allow only size and type)
 ---@param opts table parsed arguments from cmd.args (see `:help nvim_create_user_command`)
 ---@return table|boolean opts validated options to pass to `:Build` or false if there was an error
-function M.validate(opts)
+function M.validate_opts(opts)
     if opts == nil then
         return {}
     end

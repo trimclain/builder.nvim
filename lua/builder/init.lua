@@ -128,6 +128,7 @@ local function run_command(command, bufnr)
 
             vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "[Finished in " .. message .. "]" })
         end
+        vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
     end
 end
 

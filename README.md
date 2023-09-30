@@ -1,4 +1,4 @@
-# builder.nvim
+# ⚒️ builder.nvim
 Simple building plugin for neovim inspired by the Build Tool from Sublime Text.
 
 | Default                                                                                                                                                                                                            |

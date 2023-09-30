@@ -14,12 +14,18 @@ local config = {
     line_number = false, -- show line numbers the builder buffer
     autosave = true, -- automatically save before building
     close_keymaps = { "q", "<Esc>" }, -- keymaps to close the builder buffer
+    measure_time = true, -- measure the time it took to build
     -- for lua and vim filetypes `:source %` will be used by default
     commands = {}, -- commands for building each filetype
 }
 
 function M.setup(opts)
     config = vim.tbl_deep_extend("force", config, opts or {})
+
+    -- disable measure_time on windows until a better solution is found
+    if vim.fn.has("win32") == 1 or vim.fn.has("mac") == 1 then
+        config.measure_time = false
+    end
 
     -- Create the `:Build` command
     vim.api.nvim_create_user_command("Build", function(cmd)
@@ -95,13 +101,33 @@ local function run_command(command, bufnr)
     -- vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "Output:" })
     local cmdtable = vim.split(command, "&&")
     for _, cmd in ipairs(cmdtable) do
+        -- INFO: calcutaing time it took using `date` from shell (doesn't work on Windows)
+
+        ---@diagnostic disable-next-line: missing-fields
+        local start_time = config.measure_time and vim.system({ "date", "+%s%N" }, { text = true }):wait().stdout or 0
+
         ---@diagnostic disable-next-line: missing-fields
         local obj = vim.system(vim.split(vim.trim(cmd), " "), { text = true }):wait()
         local data = obj.stdout ~= "" and obj.stdout or obj.stderr or ""
         local datatable = vim.split(vim.trim(data), "\n")
         vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, datatable)
-        -- TODO: calculate timer to show "Finished" after the job is done
-        -- vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "[Finished TBD ms]" })
+
+        ---@diagnostic disable-next-line: missing-fields
+        local end_time = config.measure_time and vim.system({ "date", "+%s%N" }, { text = true }):wait().stdout or 0
+
+        if config.measure_time then
+            local milliseconds = math.floor((end_time - start_time) / 1000000)
+            local message = ""
+
+            if milliseconds >= 1000 then
+                local seconds = string.format("%.1f", milliseconds / 1000)
+                message = seconds .. "s"
+            else
+                message = milliseconds .. "ms"
+            end
+
+            vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "[Finished in " .. message .. "]" })
+        end
     end
 end
 

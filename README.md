@@ -55,6 +55,8 @@ Builder comes with the following defaults:
     autosave = true,
     -- keymaps to close the builder buffer, same format as for vim.keymap.set
     close_keymaps = { "q", "<Esc>" },
+     -- measure the time it took to build (currently enabled only on linux)
+    measure_time = true,
     -- commands for building each filetype; see below
     -- for lua and vim filetypes `:source %` will be used by default
     commands = {},

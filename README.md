@@ -1,6 +1,14 @@
 # builder.nvim
 Simple building plugin for neovim inspired by the Build Tool from Sublime Text.
 
+| Default                                                                                                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ![bot](https://github.com/trimclain/builder.nvim/assets/84108846/21bd3b5e-0e33-4e24-b7a3-fa8f63572ffc)                                                                                                             |
+
+| Vertical                                                                                                | Floating                                                                                                 |
+| ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| ![vert](https://github.com/trimclain/builder.nvim/assets/84108846/1e2ee23a-6ad1-4a3a-b8b1-893403f5c01c) | ![float](https://github.com/trimclain/builder.nvim/assets/84108846/6f94dc76-b652-4ac8-b54e-c3d19aaebdaa) |
+
 
 ## Demo
 

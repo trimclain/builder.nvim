@@ -26,7 +26,11 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim) *(recommended)*
     keys = {
         { "<C-b>", function() require("builder").build() end, desc = "Build" }
     },
-    config = true,
+    opts = {
+        commands = {
+            -- add your commands
+        },
+    },
 }
 ```
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
@@ -34,7 +38,11 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 use {
     "trimclain/builder.nvim",
     config = function()
-        require('builder').setup()
+        require('builder').setup({
+            commands = {
+                -- add your commands
+            },
+        })
         vim.keymap.set("n", "<C-b>", ":Build<cr>", { silent = true, desc = "Build" })
     end
 }

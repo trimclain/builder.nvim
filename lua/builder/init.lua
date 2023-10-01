@@ -101,33 +101,36 @@ end
 local function run_command(command, bufnr)
     -- vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "Output:" })
     local cmdtable = vim.split(command, "&&")
-    for _, cmd in ipairs(cmdtable) do
-        -- INFO: time measurement uses the external `date` command from (only on linux)
 
-        ---@diagnostic disable-next-line: missing-fields
-        local start_time = config.measure_time and vim.system({ "date", "+%s%N" }, { text = true }):wait().stdout or 0
+    -- INFO: time measurement uses the external `date` command from (only on linux)
+
+    ---@diagnostic disable-next-line: missing-fields
+    local start_time = config.measure_time and vim.system({ "date", "+%s%N" }, { text = true }):wait().stdout or 0
+    for _, cmd in ipairs(cmdtable) do
 
         ---@diagnostic disable-next-line: missing-fields
         local obj = vim.system(vim.split(vim.trim(cmd), " "), { text = true }):wait()
         local data = obj.stdout ~= "" and obj.stdout or obj.stderr or ""
-        local datatable = vim.split(vim.trim(data), "\n")
-        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, datatable)
+        if data ~= "" then
+            local datatable = vim.split(vim.trim(data), "\n")
+            vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, datatable)
 
-        ---@diagnostic disable-next-line: missing-fields
-        local end_time = config.measure_time and vim.system({ "date", "+%s%N" }, { text = true }):wait().stdout or 0
+            ---@diagnostic disable-next-line: missing-fields
+            local end_time = config.measure_time and vim.system({ "date", "+%s%N" }, { text = true }):wait().stdout or 0
 
-        if config.measure_time then
-            local milliseconds = math.floor((end_time - start_time) / 1000000)
-            local message = ""
+            if config.measure_time then
+                local milliseconds = math.floor((end_time - start_time) / 1000000)
+                local message = ""
 
-            if milliseconds >= 1000 then
-                local seconds = string.format("%.1f", milliseconds / 1000)
-                message = seconds .. "s"
-            else
-                message = milliseconds .. "ms"
+                if milliseconds >= 1000 then
+                    local seconds = string.format("%.1f", milliseconds / 1000)
+                    message = seconds .. "s"
+                else
+                    message = milliseconds .. "ms"
+                end
+
+                vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "[Finished in " .. message .. "]" })
             end
-
-            vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "[Finished in " .. message .. "]" })
         end
     end
     vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })

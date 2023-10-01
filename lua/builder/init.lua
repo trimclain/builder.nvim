@@ -57,7 +57,7 @@ local function create_buffer(type, size)
     local bufnr
     if type == "float" then
         bufnr = vim.api.nvim_create_buf(false, true)
-        local dimensions = Util.get_float_dimensions(config.float_size)
+        local dimensions = Util.calculate_float_dimensions(config.float_size)
         vim.api.nvim_open_win(bufnr, true, {
             style = "minimal",
             relative = "editor",
@@ -73,9 +73,10 @@ local function create_buffer(type, size)
             vim.opt_local.number = true
         end
     else
-        size = type == "vert" and math.floor(vim.o.columns * size) or math.floor(vim.o.lines * size)
+        local calc_size = Util.calulate_win_size(type, size)
         -- create the window
-        vim.cmd(type .. " " .. size .. "new")
+        -- TODO: this can be more pretty
+        vim.cmd(type .. " " .. calc_size .. "new")
         bufnr = vim.api.nvim_get_current_buf()
         vim.bo[bufnr].buflisted = false
 
@@ -89,7 +90,7 @@ local function create_buffer(type, size)
             vim.opt_local.relativenumber = false
         end
     end
-
+    Util.create_resize_autocmd(0, type, size, config)
     set_keymaps(bufnr)
     return bufnr
 end
@@ -101,7 +102,7 @@ local function run_command(command, bufnr)
     -- vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "Output:" })
     local cmdtable = vim.split(command, "&&")
     for _, cmd in ipairs(cmdtable) do
-        -- INFO: calcutaing time it took using `date` from shell (doesn't work on Windows)
+        -- INFO: time measurement uses the external `date` command from (only on linux)
 
         ---@diagnostic disable-next-line: missing-fields
         local start_time = config.measure_time and vim.system({ "date", "+%s%N" }, { text = true }):wait().stdout or 0

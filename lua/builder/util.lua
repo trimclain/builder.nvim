@@ -78,7 +78,7 @@ end
 --- Get the dimensions of the floating window
 ---@param float_size table width and height of the floating window
 ---@return table dimensions of the floating window
-function M.get_float_dimensions(float_size)
+function M.calculate_float_dimensions(float_size)
     local x = 0.5
     local y = 0.5
 
@@ -96,6 +96,63 @@ function M.get_float_dimensions(float_size)
         row = row,
         col = col,
     }
+end
+
+--- Calculate the size of the window
+---@param type string "bot", "top", or "vert"
+---@param size number percentage of the window size
+---@return number size amount of lines or columns
+function M.calulate_win_size(type, size)
+    if type == "vert" then
+        return math.floor(vim.o.columns * size)
+    else
+        return math.floor(vim.o.lines * size)
+    end
+end
+
+--- Resize window with winid
+---@param winid number window id
+---@param type string "bot", "top", "vert", or "float"
+---@param size number percentage of the window size
+---@param config table default builder config
+local function resize_window(winid, type, size, config)
+    if type == "float" then
+        local dimensions = M.calculate_float_dimensions(config.float_size)
+        vim.api.nvim_win_set_config(0, {
+            style = "minimal",
+            relative = "editor",
+            width = dimensions.width,
+            height = dimensions.height,
+            row = dimensions.row,
+            col = dimensions.col,
+            border = config.float_border,
+            title = " Builder ",
+            title_pos = "center",
+        })
+        return
+    end
+
+    local calc_size = M.calulate_win_size(type, size)
+    if type == "vert" then
+        vim.api.nvim_win_set_width(winid, calc_size)
+    else
+        vim.api.nvim_win_set_height(winid, calc_size)
+    end
+end
+
+--- Create an autocmd to resize the window with winid
+---@param winid number window id
+---@param type string "bot", "top", "vert", or "float"
+---@param size number percentage of the window size
+---@param config table default builder config
+function M.create_resize_autocmd(winid, type, size, config)
+    vim.api.nvim_create_autocmd("VimResized", {
+        callback = function()
+            resize_window(winid, type, size, config)
+        end,
+        desc = "Update builder size when window is resized",
+        group = vim.api.nvim_create_augroup("builder_resize", { clear = true }),
+    })
 end
 
 return M

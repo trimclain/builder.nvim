@@ -108,6 +108,7 @@ This is an example of what `commands` could look like
 
 
 ## Usage
+
 Run `:Build` to build/run current file/project using the command for current filetype from `commands` table.
 You can also pass different `size` and `type` arguments:
 ```
@@ -119,7 +120,13 @@ or
 ```
 
 
+## Feedback
+
+If you have any questions or would like to see any new features, feel free to open a new [Issue](https://github.com/trimclain/builder.nvim/issues). Feedback is very welcome
+and greatly appreciated.
+
+
 ## Credit
 
-- [jaq.nvim](https://github.com/is0n/jaq-nvim) -- for giving me motivation to do it better
-- [tj's video](https://www.youtube.com/watch?v=9gUatBHuXE0) -- for showing me how to do it better
+- [jaq.nvim](https://github.com/is0n/jaq-nvim)
+- [tj's video](https://www.youtube.com/watch?v=9gUatBHuXE0)

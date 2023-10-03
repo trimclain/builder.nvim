@@ -4,7 +4,6 @@ local Util = require("builder.util")
 
 local config = {
     type = "bot", -- "bot", "top", "vert" or "float"
-    -- number of lines for type = "bot" / characters for type = "vert"
     size = 0.25, -- percentage of width/height for type = "vert"/"bot" between 0 and 1
     float_size = {
         height = 0.8,

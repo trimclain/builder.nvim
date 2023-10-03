@@ -78,6 +78,7 @@ local function create_buffer(type, size)
         vim.cmd(type .. " " .. calc_size .. "new")
         bufnr = vim.api.nvim_get_current_buf()
         vim.bo[bufnr].buflisted = false
+        vim.wo.fillchars = "eob: " -- disable ~ on empty lines
 
         -- make the buffer temporary
         vim.opt_local.buftype = "nofile"
@@ -89,6 +90,7 @@ local function create_buffer(type, size)
             vim.opt_local.relativenumber = false
         end
     end
+    vim.api.nvim_set_option_value("filetype", "Builder", { buf = bufnr })
     Util.create_resize_autocmd(0, type, size, config)
     set_keymaps(bufnr)
     return bufnr
@@ -106,7 +108,6 @@ local function run_command(command, bufnr)
     ---@diagnostic disable-next-line: missing-fields
     local start_time = config.measure_time and vim.system({ "date", "+%s%N" }, { text = true }):wait().stdout or 0
     for _, cmd in ipairs(cmdtable) do
-
         ---@diagnostic disable-next-line: missing-fields
         local obj = vim.system(vim.split(vim.trim(cmd), " "), { text = true }):wait()
         local data = obj.stdout ~= "" and obj.stdout or obj.stderr or ""

@@ -73,6 +73,9 @@ Builder comes with the following defaults:
     close_keymaps = { "q", "<Esc>" },
      -- measure the time it took to build (currently enabled only on linux)
     measure_time = true,
+    -- support colorful output by using to `:terminal` instead of a normal nvim buffer;
+    -- for `color = true` the `type = "float"` isn't allowed
+    color = false,
     -- commands for building each filetype; see below
     -- for lua and vim filetypes `:source %` will be used by default
     commands = {},

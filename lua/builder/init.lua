@@ -14,6 +14,7 @@ local config = {
     autosave = true, -- automatically save before building
     close_keymaps = { "q", "<Esc>" }, -- keymaps to close the builder buffer
     measure_time = true, -- measure the time it took to build
+    color = false, -- support colorful output by using to `:terminal`
     -- for lua and vim filetypes `:source %` will be used by default
     commands = {}, -- commands for building each filetype
 }
@@ -136,6 +137,31 @@ local function run_command(command, bufnr)
     vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
 end
 
+--- Run the command in a terminal
+---@param type string "bot", "top", "vert" or "float"
+---@param size number amount of lines for type = "bot" / characters for type = "vert"
+---@param cmd string command to run
+-- TODO: somehow combine with create_buffer?
+local function run_in_term(type, size, cmd)
+    if type == "float" then
+        require("builder.util").error("Error: type `float` is not supported with `color`")
+        return
+    end
+
+    local calc_size = Util.calulate_win_size(type, size)
+    vim.cmd(type .. " " .. calc_size .. "new | term " .. cmd)
+
+    vim.opt_local.buflisted = false
+    if not config.line_number then
+        vim.opt_local.number = false
+        vim.opt_local.relativenumber = false
+    end
+
+    vim.api.nvim_set_option_value("filetype", "Builder", { scope = "local" })
+    Util.create_resize_autocmd(0, type, size, config)
+    set_keymaps(vim.api.nvim_get_current_buf())
+end
+
 function M.build(opts)
     opts = Util.validate_opts(opts)
 
@@ -163,6 +189,19 @@ function M.build(opts)
     -- preconfigure builder buffer
     local type = opts.type or config.type
     local size = opts.size or config.size
+
+    local color
+    if opts.color ~= nil then
+        color = opts.color
+    else
+        color = config.color
+    end
+
+    -- handle colored output using `:terminal`
+    if color then
+        run_in_term(type, size, cmd)
+        return
+    end
 
     -- build/run the buffer
     local bufnr = create_buffer(type, size)

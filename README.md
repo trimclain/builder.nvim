@@ -121,6 +121,10 @@ or
 ```
 :lua require("builder").build({ type = "float" })
 ```
+To enable colored output use:
+```
+:Build color=true
+```
 
 
 ## Feedback

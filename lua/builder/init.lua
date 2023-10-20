@@ -10,9 +10,9 @@ local config = {
         width = 0.8,
     },
     float_border = "none", -- which border to use for the floating window from `:h nvim_open_win`
-    line_number = false, -- show line numbers the builder buffer
+    line_number = false, -- show line numbers in the Builder buffer
     autosave = true, -- automatically save before building
-    close_keymaps = { "q", "<Esc>" }, -- keymaps to close the builder buffer
+    close_keymaps = { "q", "<Esc>" }, -- keymaps to close the Builder buffer
     measure_time = true, -- measure the time it took to build
     color = false, -- support colorful output by using to `:terminal`
     -- for lua and vim filetypes `:source %` will be used by default
@@ -34,7 +34,7 @@ function M.setup(opts)
     })
 end
 
---- Set mapping for closing the builder buffer
+--- Set mapping for closing the Builder buffer
 ---@param bufnr number buffer number
 local function set_keymaps(bufnr)
     for _, key in ipairs(config.close_keymaps) do
@@ -44,7 +44,7 @@ local function set_keymaps(bufnr)
     end
 end
 
---- Create a buffer for the builder
+--- Create a buffer for the Builder
 ---@param type string "bot", "top", "vert" or "float"
 ---@param size number amount of lines for type = "bot" / characters for type = "vert"
 ---@return number bufnr the number of the created buffer
@@ -174,7 +174,7 @@ function M.build(opts)
     end
     cmd = Util.substitute(cmd)
 
-    -- preconfigure builder buffer
+    -- preconfigure Builder buffer
     local type = opts.type or config.type
     local size = opts.size or config.size
 

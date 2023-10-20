@@ -130,7 +130,7 @@ end
 ---@param winid number window id
 ---@param type string "bot", "top", "vert", or "float"
 ---@param size number percentage of the window size
----@param config table default builder config
+---@param config table default Builder config
 local function resize_window(winid, type, size, config)
     if type == "float" then
         local dimensions = M.calculate_float_dimensions(config.float_size)
@@ -160,13 +160,13 @@ end
 ---@param winid number window id
 ---@param type string "bot", "top", "vert", or "float"
 ---@param size number percentage of the window size
----@param config table default builder config
+---@param config table default Builder config
 function M.create_resize_autocmd(winid, type, size, config)
     vim.api.nvim_create_autocmd("VimResized", {
         callback = function()
             resize_window(winid, type, size, config)
         end,
-        desc = "Update builder size when window is resized",
+        desc = "Update Builder size when window is resized",
         group = vim.api.nvim_create_augroup("builder_resize", { clear = true }),
     })
 end

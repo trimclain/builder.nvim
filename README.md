@@ -69,9 +69,9 @@ Builder comes with the following defaults:
     line_number = false,
     -- automatically save before building
     autosave = true,
-    -- keymaps to close the builder buffer, same format as for vim.keymap.set
+    -- keymaps to close the Builder buffer, same format as for vim.keymap.set
     close_keymaps = { "q", "<Esc>" },
-     -- measure the time it took to build (currently enabled only on linux)
+     -- measure the time it took to build
     measure_time = true,
     -- support colorful output by using to `:terminal` instead of a normal nvim buffer;
     -- for `color = true` the `type = "float"` isn't allowed

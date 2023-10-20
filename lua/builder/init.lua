@@ -22,11 +22,6 @@ local config = {
 function M.setup(opts)
     config = vim.tbl_deep_extend("force", config, opts or {})
 
-    -- disable measure_time on windows until a better solution is found
-    if vim.fn.has("win32") == 1 or vim.fn.has("mac") == 1 then
-        config.measure_time = false
-    end
-
     -- Create the `:Build` command
     vim.api.nvim_create_user_command("Build", function(cmd)
         local options = Util.validate_opts(Util.parse(cmd.args))
@@ -104,10 +99,7 @@ local function run_command(command, bufnr)
     -- vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "Output:" })
     local cmdtable = vim.split(command, "&&")
 
-    -- INFO: time measurement uses the external `date` command from (only on linux)
-
-    ---@diagnostic disable-next-line: missing-fields
-    local start_time = config.measure_time and vim.system({ "date", "+%s%N" }, { text = true }):wait().stdout or 0
+    local start_time = config.measure_time and vim.fn.reltime()
     for _, cmd in ipairs(cmdtable) do
         ---@diagnostic disable-next-line: missing-fields
         local obj = vim.system(vim.split(vim.trim(cmd), " "), { text = true }):wait()
@@ -116,18 +108,14 @@ local function run_command(command, bufnr)
             local datatable = vim.split(vim.trim(data), "\n")
             vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, datatable)
 
-            ---@diagnostic disable-next-line: missing-fields
-            local end_time = config.measure_time and vim.system({ "date", "+%s%N" }, { text = true }):wait().stdout or 0
-
             if config.measure_time then
-                local milliseconds = math.floor((end_time - start_time) / 1000000)
-                local message = ""
+                local seconds = vim.fn.reltimefloat(vim.fn.reltime(start_time))
 
-                if milliseconds >= 1000 then
-                    local seconds = string.format("%.1f", milliseconds / 1000)
-                    message = seconds .. "s"
+                local message = ""
+                if seconds < 1 then
+                    message = string.format("%.0f", seconds * 1000) .. "ms"
                 else
-                    message = milliseconds .. "ms"
+                    message = string.format("%.1f", seconds) .. "s"
                 end
 
                 vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "[Finished in " .. message .. "]" })

@@ -100,6 +100,7 @@ local function run_command(command, bufnr)
     local cmdtable = vim.split(command, "&&")
 
     local start_time = config.measure_time and vim.fn.reltime()
+    -- TODO: check the output code of the first command before doing the next
     for _, cmd in ipairs(cmdtable) do
         ---@diagnostic disable-next-line: missing-fields
         local obj = vim.system(vim.split(vim.trim(cmd), " "), { text = true }):wait()
@@ -122,6 +123,49 @@ local function run_command(command, bufnr)
             end
         end
     end
+    vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
+end
+
+--- Run the command and append the output to the buffer
+--- This is the legacy version that uses vim.fn.jobstart TODO: remove this as soon as nvim 0.10 is released
+---@param command string command to run
+---@param bufnr number number of buffer to append the output to
+local function legacy_run_command(command, bufnr)
+    local function append_data_to_buffer(_, data)
+        if data then
+            -- stylua: ignore
+            data = vim.tbl_filter(function(item) return item ~= "" end, data)
+            if not vim.tbl_isempty(data) then
+                vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, data)
+            end
+        end
+    end
+
+    -- TODO: check the output code of the first command before doing the next
+    local cmds = vim.split(command, "&&")
+    local start_time = config.measure_time and vim.fn.reltime()
+    for _, cmd in ipairs(cmds) do
+        local job_id = vim.fn.jobstart(vim.split(vim.trim(cmd), " "), {
+            stdout_buffered = true,
+            on_stdout = append_data_to_buffer,
+            on_stderr = append_data_to_buffer,
+        })
+        vim.fn.jobwait({ job_id })
+    end
+
+    if config.measure_time then
+        local seconds = vim.fn.reltimefloat(vim.fn.reltime(start_time))
+
+        local message = ""
+        if seconds < 1 then
+            message = string.format("%.0f", seconds * 1000) .. "ms"
+        else
+            message = string.format("%.1f", seconds) .. "s"
+        end
+
+        vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "[Finished in " .. message .. "]" })
+    end
+
     vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
 end
 
@@ -152,6 +196,8 @@ end
 
 function M.build(opts)
     opts = Util.validate_opts(opts)
+
+    -- TODO: check if I'm in a nomodofiable buffer, or no buftype?
 
     -- before building
     if config.autosave then
@@ -193,7 +239,12 @@ function M.build(opts)
 
     -- build/run the buffer
     local bufnr = create_buffer(type, size)
-    run_command(cmd, bufnr)
+    -- if vim.system
+    if vim.fn.has("nvim-0.10") == 1 then
+        run_command(cmd, bufnr)
+    else
+        legacy_run_command(cmd, bufnr)
+    end
 end
 
 return M

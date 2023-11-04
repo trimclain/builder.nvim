@@ -208,7 +208,13 @@ end
 function M.build(opts)
     opts = Util.validate_opts(opts)
 
-    -- TODO: check if I'm in a nomodofiable buffer, or no buftype?
+    if not vim.bo.buflisted then
+        Util.info("Building unlisted buffers is not supported")
+        return
+    elseif not vim.bo.modifiable then
+        Util.info("Building unmodifiable buffers is not supported")
+        return
+    end
 
     -- before building
     if config.autosave then
@@ -235,14 +241,13 @@ function M.build(opts)
     local type = opts.type or config.type
     local size = opts.size or config.size
 
+    -- handle colored output using `:terminal`
     local color
     if opts.color ~= nil then
         color = opts.color
     else
         color = config.color
     end
-
-    -- handle colored output using `:terminal`
     if color then
         run_in_term(type, size, cmd)
         return

@@ -92,42 +92,59 @@ local function create_buffer(type, size)
     return bufnr
 end
 
+--- Measure time passed since start time and append it to the buffer
+---@param start_time number start time
+---@param code number exit code of the last command
+---@param bufnr number number of buffer to append the output to
+local function measure(start_time, code, bufnr)
+    local seconds = vim.fn.reltimefloat(vim.fn.reltime(start_time))
+
+    local timestring = ""
+    if seconds < 1 then
+        timestring = string.format("%.0f", seconds * 1000) .. "ms"
+    else
+        timestring = string.format("%.1f", seconds) .. "s"
+    end
+
+    local message = ""
+    if code ~= 0 then
+        message = "[Finished in " .. timestring .. " with exit code " .. code .. "]"
+    else
+        message = "[Finished in " .. timestring .. "]"
+    end
+    vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { message })
+end
+
 --- Run the command and append the output to the buffer
 ---@param command string command to run
 ---@param bufnr number number of buffer to append the output to
 local function run_command(command, bufnr)
-    -- vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "Output:" })
     local cmdtable = vim.split(command, "&&")
-
+    local code
     local start_time = config.measure_time and vim.fn.reltime()
-    -- TODO: check the output code of the first command before doing the next
     for _, cmd in ipairs(cmdtable) do
         ---@diagnostic disable-next-line: missing-fields
         local obj = vim.system(vim.split(vim.trim(cmd), " "), { text = true }):wait()
         local data = obj.stdout ~= "" and obj.stdout or obj.stderr or ""
+        code = obj.code
         if data ~= "" then
             local datatable = vim.split(vim.trim(data), "\n")
             vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, datatable)
-
-            if config.measure_time then
-                local seconds = vim.fn.reltimefloat(vim.fn.reltime(start_time))
-
-                local message = ""
-                if seconds < 1 then
-                    message = string.format("%.0f", seconds * 1000) .. "ms"
-                else
-                    message = string.format("%.1f", seconds) .. "s"
-                end
-
-                vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "[Finished in " .. message .. "]" })
-            end
+        end
+        if code ~= 0 then
+            break
         end
     end
+
+    if config.measure_time then
+        measure(start_time, code, bufnr)
+    end
+
     vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
 end
 
 --- Run the command and append the output to the buffer
---- This is the legacy version that uses vim.fn.jobstart TODO: remove this as soon as nvim 0.10 is released
+--- This is the legacy version that uses vim.fn.jobstart for nvim < 0.10
 ---@param command string command to run
 ---@param bufnr number number of buffer to append the output to
 local function legacy_run_command(command, bufnr)
@@ -141,8 +158,8 @@ local function legacy_run_command(command, bufnr)
         end
     end
 
-    -- TODO: check the output code of the first command before doing the next
     local cmds = vim.split(command, "&&")
+    local code
     local start_time = config.measure_time and vim.fn.reltime()
     for _, cmd in ipairs(cmds) do
         local job_id = vim.fn.jobstart(vim.split(vim.trim(cmd), " "), {
@@ -150,20 +167,14 @@ local function legacy_run_command(command, bufnr)
             on_stdout = append_data_to_buffer,
             on_stderr = append_data_to_buffer,
         })
-        vim.fn.jobwait({ job_id })
+        code = vim.fn.jobwait({ job_id })[1]
+        if code ~= 0 then
+            break
+        end
     end
 
     if config.measure_time then
-        local seconds = vim.fn.reltimefloat(vim.fn.reltime(start_time))
-
-        local message = ""
-        if seconds < 1 then
-            message = string.format("%.0f", seconds * 1000) .. "ms"
-        else
-            message = string.format("%.1f", seconds) .. "s"
-        end
-
-        vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { "[Finished in " .. message .. "]" })
+        measure(start_time, code, bufnr)
     end
 
     vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })

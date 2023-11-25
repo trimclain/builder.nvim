@@ -15,6 +15,10 @@ Simple building plugin for neovim inspired by the Build Tool from Sublime Text.
 https://github.com/trimclain/builder.nvim/assets/84108846/c2468898-e5c6-4786-bf37-9dc780261cc7
 
 
+## Requirements
+- [Neovim](https://neovim.io) >= 0.9.0
+
+
 ## Installation
 
 Using [lazy.nvim](https://github.com/folke/lazy.nvim) *(recommended)*

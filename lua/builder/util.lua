@@ -36,7 +36,7 @@ function M.validate_opts(opts)
     local allowed_opts = { "size", "type", "color" }
     for key, _ in pairs(opts) do
         if not vim.tbl_contains(allowed_opts, key) then
-            error("Error: invalid option: " .. key .. "\nAllowed options: " .. vim.inspect(allowed_opts))
+            M.error("Error: invalid option: " .. key .. "\nAllowed options: " .. vim.inspect(allowed_opts))
             return false
         end
     end
@@ -47,11 +47,11 @@ function M.validate_opts(opts)
             if opts.color == "true" or opts.color == "false" then
                 opts.color = opts.color == "true"
             else
-                error("Error: color should be a boolean")
+                M.error("Error: color should be a boolean")
                 return false
             end
         elseif type(opts.color) ~= "boolean" then
-            error("Error: color should be a boolean")
+            M.error("Error: color should be a boolean")
             return false
         end
     end
@@ -67,7 +67,7 @@ function M.validate_opts(opts)
             end
         end
         if not type_valid then
-            error("Error: invalid type: " .. opts.type .. "\nAllowed types: " .. vim.inspect(allowed_types))
+            M.error("Error: invalid type: " .. opts.type .. "\nAllowed types: " .. vim.inspect(allowed_types))
             return false
         end
     end

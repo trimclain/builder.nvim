@@ -20,6 +20,12 @@ local config = {
 }
 
 function M.setup(opts)
+    -- Check nvim version
+    if vim.fn.has("nvim-0.9.0") == 0 then
+        Util.error("Builder requires Neovim 0.9.0 or greater")
+        return
+    end
+
     config = vim.tbl_deep_extend("force", config, opts or {})
 
     -- Create the `:Build` command
@@ -187,7 +193,7 @@ end
 -- TODO: somehow combine with create_buffer?
 local function run_in_term(type, size, cmd)
     if type == "float" then
-        require("builder.util").error("Error: type `float` is not supported with `color`")
+        Util.error("Error: type `float` is not supported with `color`")
         return
     end
 

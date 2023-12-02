@@ -3,7 +3,7 @@ local M = {}
 -- stylua: ignore start
 local notify = function(msg, log_level) vim.notify(msg, log_level, { title = "Builder" }) end
 M.info = function(msg) notify(msg, vim.log.levels.INFO) end
-M.error = function(msg) notify(msg, vim.log.levels.ERROR) end
+M.error = function(msg) notify("Error: " .. msg, vim.log.levels.ERROR) end
 -- stylua: ignore end
 
 --- Parse arguments for the `:Build` command
@@ -36,7 +36,7 @@ function M.validate_opts(opts)
     local allowed_opts = { "size", "type", "color" }
     for key, _ in pairs(opts) do
         if not vim.tbl_contains(allowed_opts, key) then
-            M.error("Error: invalid option: " .. key .. "\nAllowed options: " .. vim.inspect(allowed_opts))
+            M.error("invalid option: " .. key .. "\nAllowed options: " .. vim.inspect(allowed_opts))
             return false
         end
     end
@@ -47,11 +47,11 @@ function M.validate_opts(opts)
             if opts.color == "true" or opts.color == "false" then
                 opts.color = opts.color == "true"
             else
-                M.error("Error: color should be a boolean")
+                M.error("color should be a boolean")
                 return false
             end
         elseif type(opts.color) ~= "boolean" then
-            M.error("Error: color should be a boolean")
+            M.error("color should be a boolean")
             return false
         end
     end
@@ -67,7 +67,7 @@ function M.validate_opts(opts)
             end
         end
         if not type_valid then
-            M.error("Error: invalid type: " .. opts.type .. "\nAllowed types: " .. vim.inspect(allowed_types))
+            M.error("invalid type: " .. opts.type .. "\nAllowed types: " .. vim.inspect(allowed_types))
             return false
         end
     end

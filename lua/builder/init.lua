@@ -193,7 +193,7 @@ end
 -- TODO: somehow combine with create_buffer?
 local function run_in_term(type, size, cmd)
     if type == "float" then
-        Util.error("Error: type `float` is not supported with `color`")
+        Util.error("type `float` is not supported with `color`")
         return
     end
 

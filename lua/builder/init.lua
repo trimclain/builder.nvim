@@ -16,6 +16,7 @@ local config = {
     measure_time = true, -- measure the time it took to build
     color = false, -- support colorful output by using to `:terminal`
     -- for lua and vim filetypes `:source %` will be used by default
+    -- TODO: allow entries to be strings aswell as tables { run = "cmd", build = "cmd" }
     commands = {}, -- commands for building each filetype
 }
 
@@ -227,21 +228,32 @@ function M.build(opts)
         vim.cmd("silent write")
     end
 
-    -- handle internal commands
     local filetype = vim.bo.filetype
     local cmd = config.commands[filetype]
+
+    -- handle internal commands
     local is_internal = vim.tbl_contains({ "lua", "vim" }, filetype)
     if is_internal and not cmd then
         vim.cmd.source("%")
         return
     end
 
-    -- parse cmd
     if not cmd then
         Util.info('Building "' .. filetype .. '" is not configured')
         return
     end
-    cmd = Util.substitute(cmd)
+
+    -- parse cmd
+    -- use vim.F.if_nil?
+    if type(cmd) == "table" then
+        -- TODO:
+        cmd = cmd.run
+    elseif type(cmd) == "string" then
+        cmd = Util.substitute(cmd)
+    else
+        Util.error('Command for "' .. filetype .. '" can be either a string or table')
+        return
+    end
 
     -- preconfigure Builder buffer
     local type = opts.type or config.type

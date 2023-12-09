@@ -33,6 +33,7 @@ function M.validate_opts(opts)
     end
 
     -- handle invalid options
+    -- TODO: accept "cmd=run" and "cmd=build"
     local allowed_opts = { "size", "type", "color" }
     for key, _ in pairs(opts) do
         if not vim.tbl_contains(allowed_opts, key) then

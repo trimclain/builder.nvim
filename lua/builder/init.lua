@@ -16,7 +16,7 @@ local config = {
     measure_time = true, -- measure the time it took to build
     color = false, -- support colorful output by using to `:terminal`
     -- for lua and vim filetypes `:source %` will be used by default
-    commands = {}, -- commands for building each filetype
+    commands = {}, -- -- commands for building each filetype, can be a string or a table { cmd = "cmd", alt = "cmd" }
 }
 
 function M.setup(opts)
@@ -193,7 +193,7 @@ end
 -- TODO: somehow combine with create_buffer?
 local function run_in_term(type, size, cmd)
     if type == "float" then
-        Util.error("Error: type `float` is not supported with `color`")
+        Util.error("type `float` is not supported with `color`")
         return
     end
 
@@ -227,32 +227,53 @@ function M.build(opts)
         vim.cmd("silent write")
     end
 
-    -- handle internal commands
     local filetype = vim.bo.filetype
     local cmd = config.commands[filetype]
+
+    -- handle internal commands
     local is_internal = vim.tbl_contains({ "lua", "vim" }, filetype)
     if is_internal and not cmd then
         vim.cmd.source("%")
         return
     end
 
-    -- parse cmd
     if not cmd then
         Util.info('Building "' .. filetype .. '" is not configured')
         return
     end
-    cmd = Util.substitute(cmd)
+
+    -- parse cmd
+    local alt = false
+    if opts.alt ~= nil then
+        alt = opts.alt
+    end
+
+    if type(cmd) == "table" then
+        if alt then
+            cmd = cmd.alt
+        else
+            cmd = cmd.cmd
+        end
+        cmd = Util.substitute(cmd)
+    elseif type(cmd) == "string" then
+        if alt then
+            Util.error('Alt command for "' .. filetype .. '" not found')
+            return
+        end
+        cmd = Util.substitute(cmd)
+    else
+        Util.error('Command for "' .. filetype .. '" can be either a string or table')
+        return
+    end
 
     -- preconfigure Builder buffer
     local type = opts.type or config.type
     local size = opts.size or config.size
 
     -- handle colored output using `:terminal`
-    local color
+    local color = config.color
     if opts.color ~= nil then
         color = opts.color
-    else
-        color = config.color
     end
     if color then
         run_in_term(type, size, cmd)

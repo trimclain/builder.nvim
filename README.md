@@ -80,7 +80,7 @@ Builder comes with the following defaults:
     -- support colorful output by using to `:terminal` instead of a normal nvim buffer;
     -- for `color = true` the `type = "float"` isn't allowed
     color = false,
-    -- commands for building each filetype; see below
+    -- commands for building each filetype, can be a string or a table { cmd = "cmd", alt = "cmd" }; see below
     -- for lua and vim filetypes `:source %` will be used by default
     commands = {},
 }
@@ -100,8 +100,14 @@ This is an example of what `commands` could look like
     commands = {
         c = "gcc % -o $basename.out && ./$basename.out",
         cpp = "g++ % -o $basename.out && ./$basename.out",
-        go = "go run %",
-        java = "java %",
+        go = {
+            cmd = "go run %",
+            alt = "go build % && ./$basename",
+        },
+        java = {
+            cmd = "java %",
+            alt = "javac % && java $basename",
+        }
         javascript = "node %",
         -- lua = "lua %", -- this will override the default `:source %` for lua files
         markdown = "glow %",
@@ -124,6 +130,10 @@ You can also pass different `size` and `type` arguments:
 or
 ```
 :lua require("builder").build({ type = "float" })
+```
+To build with the alternative command use:
+```
+:Build alt=true
 ```
 To enable colored output use:
 ```

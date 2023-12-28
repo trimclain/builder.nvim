@@ -3,7 +3,7 @@ local M = {}
 -- stylua: ignore start
 local notify = function(msg, log_level) vim.notify(msg, log_level, { title = "Builder" }) end
 M.info = function(msg) notify(msg, vim.log.levels.INFO) end
-M.error = function(msg) notify(msg, vim.log.levels.ERROR) end
+M.error = function(msg) notify("Error: " .. msg, vim.log.levels.ERROR) end
 -- stylua: ignore end
 
 --- Parse arguments for the `:Build` command
@@ -24,7 +24,29 @@ function M.parse(args)
     return opts
 end
 
---- Validate parsed arguments for the `:Build` command (currently allow only size and type)
+--- Return true if arg is a boolean or a string that can be converted to a boolean
+---@param arg string|boolean
+---@return boolean
+local function is_bool(arg)
+    for _, v in pairs({ "true", "false", true, false }) do
+        if arg == v then
+            return true
+        end
+    end
+    return false
+end
+
+--- Convert a string to a boolean
+---@param arg string|boolean
+---@return boolean
+local function bool(arg)
+    if type(arg) == "boolean" then
+        return arg
+    end
+    return arg == "true"
+end
+
+--- Validate parsed arguments for the `:Build` command
 ---@param opts table parsed arguments from cmd.args (see `:help nvim_create_user_command`)
 ---@return table|boolean opts validated options to pass to `:Build` or false if there was an error
 function M.validate_opts(opts)
@@ -33,27 +55,30 @@ function M.validate_opts(opts)
     end
 
     -- handle invalid options
-    local allowed_opts = { "size", "type", "color" }
+    local allowed_opts = { "size", "type", "color", "alt" }
     for key, _ in pairs(opts) do
         if not vim.tbl_contains(allowed_opts, key) then
-            M.error("Error: invalid option: " .. key .. "\nAllowed options: " .. vim.inspect(allowed_opts))
+            M.error("invalid option: " .. key .. "\nAllowed options: " .. vim.inspect(allowed_opts))
             return false
         end
     end
 
     -- handle invalid color
     if opts.color ~= nil then
-        if type(opts.color) == "string" then
-            if opts.color == "true" or opts.color == "false" then
-                opts.color = opts.color == "true"
-            else
-                M.error("Error: color should be a boolean")
-                return false
-            end
-        elseif type(opts.color) ~= "boolean" then
-            M.error("Error: color should be a boolean")
+        if not is_bool(opts.color) then
+            M.error("color should be a boolean")
             return false
         end
+        opts.color = bool(opts.color)
+    end
+
+    -- handle invalid alt command
+    if opts.alt ~= nil then
+        if not is_bool(opts.alt) then
+            M.error("alt should be a boolean")
+            return false
+        end
+        opts.alt = bool(opts.alt)
     end
 
     -- handle invalid type
@@ -67,7 +92,7 @@ function M.validate_opts(opts)
             end
         end
         if not type_valid then
-            M.error("Error: invalid type: " .. opts.type .. "\nAllowed types: " .. vim.inspect(allowed_types))
+            M.error("invalid type: " .. opts.type .. "\nAllowed types: " .. vim.inspect(allowed_types))
             return false
         end
     end

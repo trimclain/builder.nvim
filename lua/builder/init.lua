@@ -16,8 +16,7 @@ local config = {
     measure_time = true, -- measure the time it took to build
     color = false, -- support colorful output by using to `:terminal`
     -- for lua and vim filetypes `:source %` will be used by default
-    -- TODO: allow entries to be strings aswell as tables { run = "cmd", build = "cmd" }
-    commands = {}, -- commands for building each filetype
+    commands = {}, -- -- commands for building each filetype, can be a string or a table { cmd = "cmd", alt = "cmd" }
 }
 
 function M.setup(opts)
@@ -244,11 +243,23 @@ function M.build(opts)
     end
 
     -- parse cmd
-    -- use vim.F.if_nil?
+    local alt = false
+    if opts.alt ~= nil then
+        alt = opts.alt
+    end
+
     if type(cmd) == "table" then
-        -- TODO:
-        cmd = cmd.run
+        if alt then
+            cmd = cmd.alt
+        else
+            cmd = cmd.cmd
+        end
+        cmd = Util.substitute(cmd)
     elseif type(cmd) == "string" then
+        if alt then
+            Util.error('Alt command for "' .. filetype .. '" not found')
+            return
+        end
         cmd = Util.substitute(cmd)
     else
         Util.error('Command for "' .. filetype .. '" can be either a string or table')
@@ -260,11 +271,9 @@ function M.build(opts)
     local size = opts.size or config.size
 
     -- handle colored output using `:terminal`
-    local color
+    local color = config.color
     if opts.color ~= nil then
         color = opts.color
-    else
-        color = config.color
     end
     if color then
         run_in_term(type, size, cmd)

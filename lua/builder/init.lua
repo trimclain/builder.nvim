@@ -10,10 +10,12 @@ local config = {
         width = 0.8,
     },
     float_border = "none", -- which border to use for the floating window from `:h nvim_open_win`
+    padding = 0, -- number or table { above, right, below, left }, similar to CSS padding
     line_number = false, -- show line numbers in the Builder buffer
     autosave = true, -- automatically save before building
     close_keymaps = { "q", "<Esc>" }, -- keymaps to close the Builder buffer
     measure_time = true, -- measure the time it took to build
+    time_to_data_padding = 0, -- padding between the measured time and the output data
     color = false, -- support colorful output by using to `:terminal`
     -- for lua and vim filetypes `:source %` will be used by default
     commands = {}, -- -- commands for building each filetype, can be a string or a table { cmd = "cmd", alt = "cmd" }
@@ -99,6 +101,57 @@ local function create_buffer(type, size)
 end
 
 --- Measure time passed since start time and append it to the buffer
+--- Return a list of lines with the padding added
+--- Credit: https://github.com/nvim-lua/plenary.nvim
+---@param replacement table list of strings
+---@param data_type? string data or time
+---@return table
+local function add_padding(replacement, data_type)
+    -- padding    List with numbers, defining the padding
+    --     above/right/below/left of the popup (similar to CSS).
+    --     An empty list uses a padding of 0 all around.  The
+    --     padding goes around the text, inside any border.
+    --     Padding uses the 'wincolor' highlight.
+    --     Example: [1, 2, 1, 3] has 1 line of padding above, 2
+    --     columns on the right, 1 line below and 3 columns on
+    --     the left.
+    local pad_top, pad_right, pad_below, pad_left = 0, 0, 0, 0
+    if type(config.padding) == "number" then
+        pad_top = config.padding
+        pad_right = config.padding
+        pad_below = config.padding
+        pad_left = config.padding
+    elseif type(config.padding) == "table" then
+        pad_top = config.padding[1] or 0
+        pad_right = config.padding[2] or 0
+        pad_below = config.padding[3] or 0
+        pad_left = config.padding[4] or 0
+    else
+        Util.error("The option `padding` can be either a number or a table")
+    end
+
+    if data_type == "data" then
+        pad_below = 0
+    elseif data_type == "time" then
+        pad_top = config.time_to_data_padding
+    end
+
+    local left_padding = string.rep(" ", pad_left)
+    local right_padding = string.rep(" ", pad_right)
+    for index = 1, #replacement do
+        replacement[index] = string.format("%s%s%s", left_padding, replacement[index], right_padding)
+    end
+
+    for _ = 1, pad_top do
+        table.insert(replacement, 1, "")
+    end
+
+    for _ = 1, pad_below do
+        table.insert(replacement, "")
+    end
+
+    return replacement
+end
 ---@param start_time number start time
 ---@param code number exit code of the last command
 ---@param bufnr number number of buffer to append the output to
@@ -135,7 +188,7 @@ local function run_command(command, bufnr)
         code = obj.code
         if data ~= "" then
             local datatable = vim.split(vim.trim(data), "\n")
-            vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, datatable)
+            vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, add_padding(datatable, "data"))
         end
         if code ~= 0 then
             break
@@ -143,7 +196,7 @@ local function run_command(command, bufnr)
     end
 
     if config.measure_time then
-        measure(start_time, code, bufnr)
+        vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, add_padding({ measure(start_time, code) }, "time"))
     end
 
     vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
@@ -159,7 +212,7 @@ local function legacy_run_command(command, bufnr)
             -- stylua: ignore
             data = vim.tbl_filter(function(item) return item ~= "" end, data)
             if not vim.tbl_isempty(data) then
-                vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, data)
+                vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, add_padding(data, "data"))
             end
         end
     end
@@ -180,7 +233,7 @@ local function legacy_run_command(command, bufnr)
     end
 
     if config.measure_time then
-        measure(start_time, code, bufnr)
+        vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, add_padding({ measure(start_time, code) }, "time"))
     end
 
     vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })

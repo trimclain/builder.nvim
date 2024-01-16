@@ -83,6 +83,7 @@ local function create_buffer(type, size)
         bufnr = vim.api.nvim_get_current_buf()
         vim.bo[bufnr].buflisted = false
         vim.wo.fillchars = "eob: " -- disable ~ on empty lines
+        vim.wo.listchars = "trail: " -- don't show trailing whitespaces
 
         -- make the buffer temporary
         vim.opt_local.buftype = "nofile"
@@ -100,7 +101,6 @@ local function create_buffer(type, size)
     return bufnr
 end
 
---- Measure time passed since start time and append it to the buffer
 --- Return a list of lines with the padding added
 --- Credit: https://github.com/nvim-lua/plenary.nvim
 ---@param replacement table list of strings
@@ -152,10 +152,12 @@ local function add_padding(replacement, data_type)
 
     return replacement
 end
+
+--- Measure time passed since start time and return a message
 ---@param start_time number start time
----@param code number exit code of the last command
----@param bufnr number number of buffer to append the output to
-local function measure(start_time, code, bufnr)
+---@param exit_code number exit code of the last command
+---@return string message with the time it took to build
+local function measure(start_time, exit_code)
     local seconds = vim.fn.reltimefloat(vim.fn.reltime(start_time))
 
     local timestring = ""
@@ -165,13 +167,10 @@ local function measure(start_time, code, bufnr)
         timestring = string.format("%.1f", seconds) .. "s"
     end
 
-    local message = ""
-    if code ~= 0 then
-        message = "[Finished in " .. timestring .. " with exit code " .. code .. "]"
-    else
-        message = "[Finished in " .. timestring .. "]"
+    if exit_code ~= 0 then
+        return "[Finished in " .. timestring .. " with exit code " .. exit_code .. "]"
     end
-    vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { message })
+    return "[Finished in " .. timestring .. "]"
 end
 
 --- Run the command and append the output to the buffer

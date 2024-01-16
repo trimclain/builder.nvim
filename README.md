@@ -47,7 +47,7 @@ use {
                 -- add your commands
             },
         })
-        vim.keymap.set("n", "<C-b>", ":Build<cr>", { silent = true, desc = "Build" })
+        vim.keymap.set("n", "<C-b>", "<cmd>Build<cr>", { silent = true, desc = "Build" })
     end
 }
 ```
@@ -69,6 +69,8 @@ Builder comes with the following defaults:
     },
     -- which border to use for the floating window (see `:help nvim_open_win`)
     float_border = "none",
+    -- number or table { above, right, below, left }, similar to CSS padding
+    padding = 0,
      -- show/hide line numbers in the Builder buffer
     line_number = false,
     -- automatically save before building
@@ -77,6 +79,8 @@ Builder comes with the following defaults:
     close_keymaps = { "q", "<Esc>" },
      -- measure the time it took to build
     measure_time = true,
+    -- empty lines between the measured time message and the output data
+    time_to_data_padding = 0,
     -- support colorful output by using to `:terminal` instead of a normal nvim buffer;
     -- for `color = true` the `type = "float"` isn't allowed
     color = false,
@@ -143,8 +147,7 @@ To enable colored output use:
 
 ## Feedback
 
-If you have any questions or would like to see any new features, feel free to open a new [Issue](https://github.com/trimclain/builder.nvim/issues). Feedback is very welcome
-and greatly appreciated.
+If you have any questions or would like to see any new features, feel free to open a new [Issue](https://github.com/trimclain/builder.nvim/issues).
 
 
 ## Credit

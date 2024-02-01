@@ -175,12 +175,22 @@ end
 
 --- Run the command and append the output to the buffer
 ---@param command string command to run
----@param bufnr number number of buffer to append the output to
-local function run_command(command, bufnr)
-    local cmdtable = vim.split(command, "&&")
+---@param type string "bot", "top", "vert" or "float"
+---@param size number amount of lines for type = "bot" / characters for type = "vert"
+local function run_command(command, type, size)
+    local cmds = vim.split(command, "&&")
+
+    local exec = vim.split(cmds[1], " ")[1]
+    if vim.fn.executable(exec) == 0 then
+        Util.error(exec .. " is not executable")
+        return
+    end
+
+    local bufnr = create_buffer(type, size)
+
     local code
     local start_time = config.measure_time and vim.fn.reltime()
-    for _, cmd in ipairs(cmdtable) do
+    for _, cmd in ipairs(cmds) do
         ---@diagnostic disable-next-line: missing-fields
         local obj = vim.system(vim.split(vim.trim(cmd), " "), { text = true }):wait()
         local data = obj.stdout ~= "" and obj.stdout or obj.stderr or ""
@@ -204,8 +214,19 @@ end
 --- Run the command and append the output to the buffer
 --- This is the legacy version that uses vim.fn.jobstart for nvim < 0.10
 ---@param command string command to run
----@param bufnr number number of buffer to append the output to
-local function legacy_run_command(command, bufnr)
+---@param type string "bot", "top", "vert" or "float"
+---@param size number amount of lines for type = "bot" / characters for type = "vert"
+local function legacy_run_command(command, type, size)
+    local cmds = vim.split(command, "&&")
+
+    local exec = vim.split(cmds[1], " ")[1]
+    if vim.fn.executable(exec) == 0 then
+        Util.error(exec .. " is not executable")
+        return
+    end
+
+    local bufnr = create_buffer(type, size)
+
     local function append_data_to_buffer(_, data)
         if data then
             -- stylua: ignore
@@ -216,7 +237,6 @@ local function legacy_run_command(command, bufnr)
         end
     end
 
-    local cmds = vim.split(command, "&&")
     local code
     local start_time = config.measure_time and vim.fn.reltime()
     for _, cmd in ipairs(cmds) do
@@ -333,12 +353,11 @@ function M.build(opts)
     end
 
     -- build/run the buffer
-    local bufnr = create_buffer(type, size)
     -- if vim.system
     if vim.fn.has("nvim-0.10") == 1 then
-        run_command(cmd, bufnr)
+        run_command(cmd, type, size)
     else
-        legacy_run_command(cmd, bufnr)
+        legacy_run_command(cmd, type, size)
     end
 end
 

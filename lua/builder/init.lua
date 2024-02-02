@@ -53,7 +53,7 @@ local function set_keymaps(bufnr)
 end
 
 --- Create a buffer for the Builder
----@param type string "bot", "top", "vert" or "float"
+---@param type string bot, top, vert or float
 ---@param size number amount of lines for type = "bot" / characters for type = "vert"
 ---@return number bufnr the number of the created buffer
 local function create_buffer(type, size)
@@ -175,7 +175,7 @@ end
 
 --- Run the command and append the output to the buffer
 ---@param command string command to run
----@param type string "bot", "top", "vert" or "float"
+---@param type string bot, top, vert or float
 ---@param size number amount of lines for type = "bot" / characters for type = "vert"
 local function run_command(command, type, size)
     local cmds = vim.split(command, "&&")
@@ -214,7 +214,7 @@ end
 --- Run the command and append the output to the buffer
 --- This is the legacy version that uses vim.fn.jobstart for nvim < 0.10
 ---@param command string command to run
----@param type string "bot", "top", "vert" or "float"
+---@param type string bot, top, vert or float
 ---@param size number amount of lines for type = "bot" / characters for type = "vert"
 local function legacy_run_command(command, type, size)
     local cmds = vim.split(command, "&&")
@@ -259,7 +259,7 @@ local function legacy_run_command(command, type, size)
 end
 
 --- Run the command in a terminal
----@param type string "bot", "top", "vert" or "float"
+---@param type string bot, top, vert or float
 ---@param size number amount of lines for type = "bot" / characters for type = "vert"
 ---@param cmd string command to run
 -- TODO: somehow combine with create_buffer?

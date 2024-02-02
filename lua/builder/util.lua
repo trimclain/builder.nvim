@@ -140,7 +140,7 @@ function M.calculate_float_dimensions(float_size)
 end
 
 --- Calculate the size of the window
----@param type string "bot", "top", or "vert"
+---@param type string bot, top, or vert
 ---@param size number percentage of the window size
 ---@return number size amount of lines or columns
 function M.calulate_win_size(type, size)
@@ -153,7 +153,7 @@ end
 
 --- Resize window with winid
 ---@param winid number window id
----@param type string "bot", "top", "vert", or "float"
+---@param type string bot, top, vert, or float
 ---@param size number percentage of the window size
 ---@param config table default Builder config
 local function resize_window(winid, type, size, config)
@@ -183,7 +183,7 @@ end
 
 --- Create an autocmd to resize the window with winid
 ---@param winid number window id
----@param type string "bot", "top", "vert", or "float"
+---@param type string bot, top, vert, or float
 ---@param size number percentage of the window size
 ---@param config table default Builder config
 function M.create_resize_autocmd(winid, type, size, config)

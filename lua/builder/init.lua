@@ -160,7 +160,7 @@ end
 local function measure(start_time, exit_code)
     local seconds = vim.fn.reltimefloat(vim.fn.reltime(start_time))
 
-    local timestring = ""
+    local timestring
     if seconds < 1 then
         timestring = string.format("%.0f", seconds * 1000) .. "ms"
     else

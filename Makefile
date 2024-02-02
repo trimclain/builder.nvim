@@ -1,11 +1,10 @@
 test:
 	nvim --headless -u tests/minimal_init.lua -c "PlenaryBustedDirectory tests {minimal_init = 'tests//minimal_init.lua', sequential = true}"
 
-# lint:
-# 	selene --config selene/config.toml lua
-# 	typos
+lint:
+	luacheck lua/builder
 
-# lint-short:
-# 	selene --config selene/config.toml --display-style Quiet lua
+# docgen:
+# 	nvim --headless --noplugin -u scripts/minimal_init.vim -c "luafile ./scripts/gendocs.lua" -c 'qa'
 
-.PHONY: test
+.PHONY: test lint

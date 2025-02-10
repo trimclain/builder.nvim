@@ -159,7 +159,7 @@ end
 local function resize_window(winid, type, size, config)
     if type == "float" then
         local dimensions = M.calculate_float_dimensions(config.float_size)
-        vim.api.nvim_win_set_config(0, {
+        vim.api.nvim_win_set_config(winid, {
             style = "minimal",
             relative = "editor",
             width = dimensions.width,

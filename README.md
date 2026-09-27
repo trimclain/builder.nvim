@@ -2,9 +2,9 @@
 
 Simple building plugin for neovim inspired by the Build Tool from Sublime Text.
 
-| Default                                                                                                                                                                                                            |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ![bot](https://github.com/trimclain/builder.nvim/assets/84108846/21bd3b5e-0e33-4e24-b7a3-fa8f63572ffc)                                                                                                             |
+| Default                                                                                                |
+| ------------------------------------------------------------------------------------------------------ |
+| ![bot](https://github.com/trimclain/builder.nvim/assets/84108846/21bd3b5e-0e33-4e24-b7a3-fa8f63572ffc) |
 
 | Vertical                                                                                                | Floating                                                                                                 |
 | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
@@ -20,7 +20,7 @@ https://github.com/trimclain/builder.nvim/assets/84108846/c2468898-e5c6-4786-bf3
 
 ## Installation
 
-Using [lazy.nvim](https://github.com/folke/lazy.nvim) *(recommended)*
+Using [lazy.nvim](https://github.com/folke/lazy.nvim) _(recommended)_
 
 ```lua
 {

@@ -1,4 +1,5 @@
 # ⚒️ builder.nvim
+
 Simple building plugin for neovim inspired by the Build Tool from Sublime Text.
 
 | Default                                                                                                                                                                                                            |
@@ -9,19 +10,18 @@ Simple building plugin for neovim inspired by the Build Tool from Sublime Text.
 | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | ![vert](https://github.com/trimclain/builder.nvim/assets/84108846/1e2ee23a-6ad1-4a3a-b8b1-893403f5c01c) | ![float](https://github.com/trimclain/builder.nvim/assets/84108846/6f94dc76-b652-4ac8-b54e-c3d19aaebdaa) |
 
-
 ## Demo
 
 https://github.com/trimclain/builder.nvim/assets/84108846/c2468898-e5c6-4786-bf37-9dc780261cc7
 
-
 ## Requirements
-- [Neovim](https://neovim.io) >= 0.9.0
 
+- [Neovim](https://neovim.io) >= 0.9.0
 
 ## Installation
 
 Using [lazy.nvim](https://github.com/folke/lazy.nvim) *(recommended)*
+
 ```lua
 {
     "trimclain/builder.nvim",
@@ -37,7 +37,9 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim) *(recommended)*
     },
 }
 ```
+
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+
 ```lua
 use {
     "trimclain/builder.nvim",
@@ -52,10 +54,10 @@ use {
 }
 ```
 
-
 ## Configuration
 
 Builder comes with the following defaults:
+
 ```lua
 {
     -- location of Builder buffer; opts: "bot", "top", "vert" or float
@@ -88,18 +90,20 @@ Builder comes with the following defaults:
     -- for lua and vim filetypes `:source %` will be used by default
     commands = {},
 }
-
-
 ```
+
 When creating a command, there are following available variables
+
 - `%` — path to the current file from the current working directory
 - `$file` — current file name with extension
 - `$basename` — basename of the file
 - `$ext` — current file extension
 - `$path` — full path to the file
-- `$dir` — current working directory
+- `$dir` — parent folder of the file
+- `$pwd` — current working directory
 
 This is an example of what `commands` could look like
+
 ```lua
     commands = {
         c = "gcc % -o $basename.out && ./$basename.out",
@@ -123,32 +127,38 @@ This is an example of what `commands` could look like
     },
 ```
 
-
 ## Usage
 
-Run `:Build` to build/run current file/project using the command for current filetype from `commands` table.
+Run `:Build` to build/run current file/project using the command
+for current filetype from `commands` table.
 You can also pass different `size` and `type` arguments:
-```
+
+```vim
 :Build size=0.4 type=vert
 ```
+
 or
-```
+
+```vim
 :lua require("builder").build({ type = "float" })
 ```
+
 To build with the alternative command use:
-```
+
+```vim
 :Build alt=true
 ```
+
 To enable colored output use:
-```
+
+```vim
 :Build color=true
 ```
 
-
 ## Feedback
 
-If you have any questions or would like to see any new features, feel free to open a new [Issue](https://github.com/trimclain/builder.nvim/issues).
-
+If you have any questions or would like to see any new features,
+feel free to open a new [Issue](https://github.com/trimclain/builder.nvim/issues).
 
 ## Credit
 

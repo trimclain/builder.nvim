@@ -113,6 +113,7 @@ function M.substitute(cmd)
     cmd = cmd:gsub("$basename", vim.fn.expand("%:t:r"))
     cmd = cmd:gsub("$path", vim.fn.expand("%:p"))
     cmd = cmd:gsub("$dir", vim.fn.expand("%:p:h"))
+    cmd = cmd:gsub("$pwd", vim.fn.escape(vim.fn.getcwd(), " "))
     return cmd
 end
 

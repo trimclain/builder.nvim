@@ -100,7 +100,7 @@ When creating a command, there are following available variables
 - `$ext` — current file extension
 - `$path` — full path to the file
 - `$dir` — parent folder of the file
-- `$pwd` — current working directory (what you get with `:pwd`)
+- `$pwd` — current working directory
 
 This is an example of what `commands` could look like
 

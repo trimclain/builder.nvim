@@ -1,3 +1,5 @@
+---@diagnostic disable: undefined-field
+
 describe("util.parse", function()
     it("can parse args correctly", function()
         assert.are.same(require("builder.util").parse("Build color=true type=vert"), { color = "true", type = "vert" })

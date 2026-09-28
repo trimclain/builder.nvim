@@ -259,7 +259,10 @@ local function run_in_term(type, size, cmd)
 end
 
 function M.build(opts)
-    opts = Util.validate_opts(opts)
+    local options = Util.validate_opts(opts)
+    if not options then
+        return
+    end
 
     if not vim.bo.buflisted then
         Util.info("Building unlisted buffers is not supported")
@@ -291,8 +294,8 @@ function M.build(opts)
 
     -- parse cmd
     local alt = false
-    if opts.alt ~= nil then
-        alt = opts.alt
+    if options.alt ~= nil then
+        alt = options.alt
     end
 
     if type(cmd) == "table" then
@@ -314,13 +317,13 @@ function M.build(opts)
     end
 
     -- preconfigure Builder buffer
-    local type = opts.type or config.type
-    local size = opts.size or config.size
+    local type = options.type or config.type
+    local size = options.size or config.size
 
     -- handle colored output using `:terminal`
     local color = config.color
-    if opts.color ~= nil then
-        color = opts.color
+    if options.color ~= nil then
+        color = options.color
     end
     if color then
         run_in_term(type, size, cmd)

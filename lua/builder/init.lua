@@ -21,6 +21,52 @@ local config = {
     commands = {}, -- -- commands for building each filetype, can be a string or a table { cmd = "cmd", alt = "cmd" }
 }
 
+--- Complete arguments for :Build.
+---@param arg_lead string Argument fragment under the cursor
+---@param cmd_line string Full command line
+---@param cursor_pos number Cursor position in the command line
+---@return string[]
+local function complete_build(arg_lead, cmd_line, cursor_pos)
+    local keys = { "type", "size", "color", "alt" }
+    local values = {
+        type = { "bot", "top", "vert", "float" },
+        color = { "true", "false" },
+        alt = { "true", "false" },
+        size = { "0.25", "0.5", "0.75" },
+    }
+
+    -- Only consider text before the cursor. Earlier arguments may already
+    -- contain a key that should not be suggested again.
+    local before_cursor = cmd_line:sub(1, cursor_pos)
+    local before_arg = before_cursor:sub(1, #before_cursor - #arg_lead)
+    local used = {}
+
+    for key in before_arg:gmatch("(%w+)=[^%s]+") do
+        used[key] = true
+    end
+
+    local candidates = {}
+    local key, value_lead = arg_lead:match("^([^=]+)=(.*)$")
+
+    if key then
+        for _, value in ipairs(values[key] or {}) do
+            local candidate = key .. "=" .. value
+            if value:sub(1, #value_lead) == value_lead then
+                candidates[#candidates + 1] = candidate
+            end
+        end
+    else
+        for _, option in ipairs(keys) do
+            local candidate = option .. "="
+            if not used[option] and candidate:sub(1, #arg_lead) == arg_lead then
+                candidates[#candidates + 1] = candidate
+            end
+        end
+    end
+
+    return candidates
+end
+
 function M.setup(opts)
     -- Check nvim version
     if vim.fn.has("nvim-0.9.0") == 0 then
@@ -37,8 +83,9 @@ function M.setup(opts)
             M.build(options)
         end
     end, {
-        nargs = "?",
+        nargs = "*",
         desc = "Build",
+        complete = complete_build,
     })
 end
 

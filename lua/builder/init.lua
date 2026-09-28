@@ -179,34 +179,22 @@ end
 ---@param type string bot, top, vert or float
 ---@param size number amount of lines for type = "bot" / characters for type = "vert"
 local function run_command(command, type, size)
-    local cmds = vim.split(command, "&&")
-
-    local exec = vim.split(cmds[1], " ")[1]
-    if vim.fn.executable(exec) == 0 then
-        Util.error(exec .. " is not executable")
-        return
-    end
-
     local bufnr = create_buffer(type, size)
-
-    local code
     local start_time = config.measure_time and vim.fn.reltime()
-    for _, cmd in ipairs(cmds) do
-        ---@diagnostic disable-next-line: missing-fields
-        local obj = vim.system(vim.split(vim.trim(cmd), " "), { text = true }):wait()
-        local data = obj.stdout ~= "" and obj.stdout or obj.stderr or ""
-        code = obj.code
-        if data ~= "" then
-            local datatable = vim.split(vim.trim(data), "\n")
-            vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, add_padding(datatable, "data"))
-        end
-        if code ~= 0 then
-            break
-        end
+
+    local obj = vim.system(
+        vim.list_extend(vim.split(vim.o.shell, " "), vim.list_extend(vim.split(vim.o.shellcmdflag, " "), { command })),
+        { text = true }
+    ):wait()
+
+    local data = obj.stdout ~= "" and obj.stdout or obj.stderr or ""
+    if data ~= "" then
+        local datatable = vim.split(vim.trim(data), "\n")
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, add_padding(datatable, "data"))
     end
 
     if config.measure_time then
-        vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, add_padding({ measure(start_time, code) }, "time"))
+        vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, add_padding({ measure(start_time, obj.code) }, "time"))
     end
 
     vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
@@ -218,14 +206,6 @@ end
 ---@param type string bot, top, vert or float
 ---@param size number amount of lines for type = "bot" / characters for type = "vert"
 local function legacy_run_command(command, type, size)
-    local cmds = vim.split(command, "&&")
-
-    local exec = vim.split(cmds[1], " ")[1]
-    if vim.fn.executable(exec) == 0 then
-        Util.error(exec .. " is not executable")
-        return
-    end
-
     local bufnr = create_buffer(type, size)
 
     local function append_data_to_buffer(_, data)
@@ -238,19 +218,13 @@ local function legacy_run_command(command, type, size)
         end
     end
 
-    local code
     local start_time = config.measure_time and vim.fn.reltime()
-    for _, cmd in ipairs(cmds) do
-        local job_id = vim.fn.jobstart(vim.split(vim.trim(cmd), " "), {
-            stdout_buffered = true,
-            on_stdout = append_data_to_buffer,
-            on_stderr = append_data_to_buffer,
-        })
-        code = vim.fn.jobwait({ job_id })[1]
-        if code ~= 0 then
-            break
-        end
-    end
+    local job_id = vim.fn.jobstart(command, {
+        stdout_buffered = true,
+        on_stdout = append_data_to_buffer,
+        on_stderr = append_data_to_buffer,
+    })
+    local code = vim.fn.jobwait({ job_id })[1]
 
     if config.measure_time then
         vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, add_padding({ measure(start_time, code) }, "time"))

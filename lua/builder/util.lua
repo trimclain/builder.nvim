@@ -106,15 +106,24 @@ end
 ---@param cmd string command with placeholders
 ---@return string cmd command with placeholders replaced
 function M.substitute(cmd)
-    -- :t is needed because when you open a file using a file tree, % becomes full path to the file
-    cmd = cmd:gsub("%%", vim.fn.expand("%"))
-    cmd = cmd:gsub("$file", vim.fn.expand("%:t"))
-    cmd = cmd:gsub("$ext", vim.fn.expand("%:e"))
-    cmd = cmd:gsub("$basename", vim.fn.expand("%:t:r"))
-    cmd = cmd:gsub("$path", vim.fn.expand("%:p"))
-    cmd = cmd:gsub("$dir", vim.fn.expand("%:p:h"))
-    cmd = cmd:gsub("$pwd", vim.fn.escape(vim.fn.getcwd(), " "))
-    return cmd
+    local values = {
+        ["%"] = vim.fn.expand("%"),
+        -- :t is needed because when you open a file using a file explorer, % becomes full path to the file
+        ["$file"] = vim.fn.expand("%:t"),
+        ["$basename"] = vim.fn.expand("%:t:r"),
+        ["$ext"] = vim.fn.expand("%:e"),
+        ["$path"] = vim.fn.expand("%:p"),
+        ["$dir"] = vim.fn.expand("%:p:h"),
+        ["$pwd"] = vim.fn.getcwd(),
+    }
+
+    return (
+        cmd:gsub("([%%$])(%a*)", function(prefix, name)
+            local token = prefix .. name
+            local value = values[token]
+            return value and vim.fn.shellescape(value) or token
+        end)
+    )
 end
 
 --- Get the dimensions of the floating window

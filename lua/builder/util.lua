@@ -82,7 +82,7 @@ function M.validate_opts(opts)
     end
 
     -- handle invalid type
-    if opts.type then
+    if opts.type ~= nil then
         local allowed_types = { "bot", "top", "vert", "float" }
         local type_valid = false
         for _, type in pairs(allowed_types) do
@@ -95,6 +95,16 @@ function M.validate_opts(opts)
             M.error("invalid type: " .. opts.type .. "\nAllowed types: " .. vim.inspect(allowed_types))
             return false
         end
+    end
+
+    -- handle invalid size
+    if opts.size ~= nil then
+        local size = tonumber(opts.size)
+        if not size or size <= 0 or size > 1 then
+            M.error("size must be a number greater than 0 and at most 1")
+            return false
+        end
+        opts.size = size
     end
 
     -- convert size to number (tonumber returns nil if the string is not a number)

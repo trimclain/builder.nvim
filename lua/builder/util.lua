@@ -8,18 +8,16 @@ M.error = function(msg) notify("Error: " .. msg, vim.log.levels.ERROR) end
 
 --- Parse arguments for the `:Build` command
 ---@param args string arguments from cmd.args (see `:help nvim_create_user_command`)
----@return table opts parsed options to pass to `:Build`
+---@return table<string, string>|nil opts parsed options to pass to `:Build` or nil if there was an error
 function M.parse(args)
-    -- remove "Build" from args
-    local parts = vim.split(vim.trim(args), "%s+")
-    if parts[1]:find("Build") then
-        table.remove(parts, 1)
-    end
-    -- create opts table
     local opts = {}
-    for _, arg in pairs(parts) do
-        local opt = vim.split(arg, "=")
-        opts[opt[1]] = opt[2]
+    for arg in args:gmatch("%S+") do
+        local key, value = arg:match("^([^=]+)=(.+)$")
+        if not key then
+            M.error("invalid argument: " .. arg .. "\nExpected: <option>=<value>")
+            return nil
+        end
+        opts[key] = value
     end
     return opts
 end

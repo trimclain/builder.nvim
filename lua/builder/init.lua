@@ -78,7 +78,12 @@ function M.setup(opts)
 
     -- Create the `:Build` command
     vim.api.nvim_create_user_command("Build", function(cmd)
-        local options = Util.validate_opts(Util.parse(cmd.args))
+        local parsed = Util.parse(cmd.args)
+        if not parsed then
+            return
+        end
+
+        local options = Util.validate_opts(parsed)
         if options then
             M.build(options)
         end

@@ -1,11 +1,20 @@
 ---@diagnostic disable: undefined-field
 
 describe("util.parse", function()
-    it("can parse args correctly", function()
-        assert.are.same(require("builder.util").parse("Build color=true type=vert"), { color = "true", type = "vert" })
-        assert.are.same(require("builder.util").parse("Build =truetype="), { [""] = "truetype" })
-        assert.are.same(require("builder.util").parse("Build =true type="), { [""] = "true", type = "" })
-        assert.are.same(require("builder.util").parse("Build "), {})
+    local parse = require("builder.util").parse
+
+    it("parses valid arguments", function()
+        assert.are.same({ color = "true", type = "vert" }, parse("color=true type=vert"))
+        assert.are.same({}, parse(""))
+        assert.are.same({}, parse("   "))
+    end)
+
+    it("rejects arguments without a nonempty key and value", function()
+        assert.is_nil(parse("asd"))
+        assert.is_nil(parse("type="))
+        assert.is_nil(parse("=true"))
+        assert.is_nil(parse("color=true type="))
+        assert.is_nil(parse("=truetype="))
     end)
 end)
 

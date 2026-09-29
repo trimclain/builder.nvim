@@ -131,7 +131,6 @@ local function create_buffer(type, size)
     else
         local calc_size = Util.calulate_win_size(type, size)
         -- create the window
-        -- TODO: this can be more pretty
         vim.cmd(type .. " " .. calc_size .. "new")
         bufnr = vim.api.nvim_get_current_buf()
         vim.bo[bufnr].buflisted = false
@@ -289,7 +288,6 @@ end
 ---@param type string bot, top, vert or float
 ---@param size number amount of lines for type = "bot" / characters for type = "vert"
 ---@param cmd string command to run
--- TODO: somehow combine with create_buffer?
 local function run_in_term(type, size, cmd)
     if type == "float" then
         Util.error("type `float` is not supported with `color`")

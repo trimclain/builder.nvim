@@ -45,7 +45,7 @@ local function bool(arg)
 end
 
 --- Validate parsed arguments for the `:Build` command
----@param opts table parsed arguments from cmd.args (see `:help nvim_create_user_command`)
+---@param opts? table parsed arguments from cmd.args (see `:help nvim_create_user_command`)
 ---@return table|boolean opts validated options to pass to `:Build` or false if there was an error
 function M.validate_opts(opts)
     if opts == nil then

@@ -1,5 +1,3 @@
----@diagnostic disable: undefined-field
-
 describe("builder", function()
     local builder = require("builder")
     local dir
@@ -63,19 +61,49 @@ describe("builder", function()
         build_win = vim.api.nvim_get_current_win()
         assert.are.same({ "hello from python" }, vim.api.nvim_buf_get_lines(0, 0, -1, false))
     end)
+
+    -- it("does not try to build an unconfigured filetype", function()
+    --     local file = dir .. "/hello-world.rb"
+    --     assert.are.equal(0, vim.fn.writefile({ 'puts "hello from ruby"' }, file))
+
+    --     vim.cmd.edit(vim.fn.fnameescape(file))
+    --     vim.cmd("Build")
+
+    --     build_win = vim.api.nvim_get_current_win()
+    --     assert.are.same({ "hello from python" }, vim.api.nvim_buf_get_lines(0, 0, -1, false))
+    -- end)
 end)
 
--- TODO: can I create tests covering following stuff:
--- - [ ] :Build command
--- - [ ] :Build command with arguments
--- - [ ] :Build command with invalid arguments
--- - [ ] :Build command with invalid options
--- - [ ] :Build command with invalid type
--- - [ ] :Build command with invalid color
--- - [ ] :Build command with invalid size
--- - [ ] :Build command with invalid command
--- - [ ] :Build command with invalid command and filetype
--- - [ ] run_command
--- - [ ] legacy_run_command
--- - [ ] run_in_term
--- - [ ] create_buffer
+describe("builder", function()
+    local builder = require("builder")
+    local util = require("builder.util")
+    local original_info
+
+    before_each(function()
+        original_info = util.info
+
+        builder.setup({
+            autosave = false,
+            commands = {},
+        })
+
+        vim.bo.filetype = "ruby"
+    end)
+
+    after_each(function()
+        util.info = original_info
+    end)
+
+    it("reports when the current filetype has no configured build command", function()
+        local message
+
+        ---@diagnostic disable-next-line: duplicate-set-field
+        util.info = function(msg)
+            message = msg
+        end
+
+        builder.build({})
+
+        assert.are.equal('Building "ruby" is not configured', message)
+    end)
+end)

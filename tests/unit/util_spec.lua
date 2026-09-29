@@ -27,7 +27,8 @@ describe("util.validate_opts", function()
 
         assert.are.same(require("builder.util").validate_opts({ size = 0.25 }), { size = 0.25 })
         assert.are.same(require("builder.util").validate_opts({ size = "0.5" }), { size = 0.5 })
-        assert.are.same(require("builder.util").validate_opts({ size = "015" }), { size = 15 }) -- TODO: is this desired behaviour?
+        assert.False(require("builder.util").validate_opts({ size = "-6" }))
+        assert.False(require("builder.util").validate_opts({ size = "9" }))
 
         assert.are.same(
             require("builder.util").validate_opts({ size = "0.2", type = "float", color = "false", alt = "false" }),

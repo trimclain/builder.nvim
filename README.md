@@ -16,7 +16,7 @@ https://github.com/trimclain/builder.nvim/assets/84108846/c2468898-e5c6-4786-bf3
 
 ## Requirements
 
-- [Neovim](https://neovim.io) >= 0.9.0
+- [Neovim](https://neovim.io) >= 0.10.0
 
 ## Installation
 

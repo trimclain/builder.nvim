@@ -4,20 +4,20 @@ on: [push, pull_request]
 
 jobs:
   unit_tests:
-    name: unit tests
+    name: unit tests (${{ matrix.rev }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            rev: v0.10.4/nvim-linux-x86_64.tar.gz
+            rev: v0.10.0/nvim-linux64.tar.gz
           - os: ubuntu-latest
-            rev: v0.9.0/nvim-linux64.tar.gz
+            rev: stable/nvim-linux-x86_64.tar.gz
           # - os: macos-13
-          #   rev: v0.10.4/nvim-macos-x86_64.tar.gz
+          #   rev: v0.10.0/nvim-macos.tar.gz
           # - os: macos-13
-          #   rev: v0.9.0/nvim-macos.tar.gz
+          #   rev: stable/nvim-macos-x86_64.tar.gz
     steps:
       - uses: actions/checkout@v4
       - run: date +%F > todays-date

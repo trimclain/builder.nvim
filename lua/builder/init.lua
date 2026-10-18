@@ -17,11 +17,12 @@ local config = {
     measure_time = true, -- measure the time it took to build
     time_to_data_padding = 0, -- padding between the measured time and the output data
     color = false, -- support colorful output by using to `:terminal`
+    async_build = true, -- run builds asynchronously, keeping Neovim responsive while the command runs
     -- for lua and vim filetypes `:source %` will be used by default
-    commands = {}, -- -- commands for building each filetype, can be a string or a table { cmd = "cmd", alt = "cmd" }
+    commands = {}, -- commands for building each filetype, can be a string or a table { cmd = "cmd", alt = "cmd" }
 }
 
---- Complete arguments for :Build.
+--- Complete arguments for :Build
 ---@param arg_lead string Argument fragment under the cursor
 ---@param cmd_line string Full command line
 ---@param cursor_pos number Cursor position in the command line
@@ -68,7 +69,6 @@ local function complete_build(arg_lead, cmd_line, cursor_pos)
 end
 
 function M.setup(opts)
-    -- Check nvim version
     if vim.fn.has("nvim-0.9.0") == 0 then
         Util.error("Builder requires Neovim 0.9.0 or greater")
         return
@@ -76,7 +76,6 @@ function M.setup(opts)
 
     config = vim.tbl_deep_extend("force", config, opts or {})
 
-    -- Create the `:Build` command
     vim.api.nvim_create_user_command("Build", function(cmd)
         local parsed = Util.parse(cmd.args)
         if not parsed then
@@ -130,14 +129,12 @@ local function create_buffer(type, size)
         end
     else
         local calc_size = Util.calulate_win_size(type, size)
-        -- create the window
         vim.cmd(type .. " " .. calc_size .. "new")
         bufnr = vim.api.nvim_get_current_buf()
         vim.bo[bufnr].buflisted = false
         vim.wo.fillchars = "eob: " -- disable ~ on empty lines
         vim.wo.listchars = "trail: " -- don't show trailing whitespaces
 
-        -- make the buffer temporary
         vim.opt_local.buftype = "nofile"
         vim.opt_local.bufhidden = "hide"
         vim.opt_local.swapfile = false
@@ -225,30 +222,59 @@ local function measure(start_time, exit_code)
     return "[Finished in " .. timestring .. "]"
 end
 
---- Run the command and append the output to the buffer
+--- Run a shell command and display its output in the Builder buffer
 ---@param command string command to run
 ---@param type string bot, top, vert or float
----@param size number amount of lines for type = "bot" / characters for type = "vert"
+---@param size number window size as a fraction of the available height or width
 local function run_command(command, type, size)
     local bufnr = create_buffer(type, size)
     local start_time = config.measure_time and vim.fn.reltime()
 
-    local obj = vim.system(
-        vim.list_extend(vim.split(vim.o.shell, " "), vim.list_extend(vim.split(vim.o.shellcmdflag, " "), { command })),
-        { text = true }
-    ):wait()
-
-    local data = obj.stdout ~= "" and obj.stdout or obj.stderr or ""
-    if data ~= "" then
-        local datatable = vim.split(vim.trim(data), "\n")
-        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, add_padding(datatable, "data"))
-    end
-
-    if config.measure_time then
-        vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, add_padding({ measure(start_time, obj.code) }, "time"))
-    end
-
     vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
+
+    local function finish(obj, timing)
+        if not vim.api.nvim_buf_is_valid(bufnr) then
+            return
+        end
+
+        local lines = {}
+        local data = (obj.stdout or "") .. (obj.stderr or "")
+
+        if data ~= "" then
+            lines = add_padding(vim.split(vim.trim(data), "\n"), "data")
+        end
+
+        if timing then
+            vim.list_extend(lines, add_padding({ timing }, "time"))
+        end
+
+        vim.api.nvim_set_option_value("modifiable", true, { buf = bufnr })
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+        vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
+    end
+
+    local ok, err = pcall(function()
+        local argv = { "sh", "-c", command }
+
+        if not config.async_build then
+            local obj = vim.system(argv, { text = true }):wait()
+            local timing = start_time and measure(start_time, obj.code)
+
+            finish(obj, timing)
+        else
+            vim.system(argv, { text = true }, function(obj)
+                local timing = start_time and measure(start_time, obj.code)
+
+                vim.schedule(function()
+                    finish(obj, timing)
+                end)
+            end)
+        end
+    end)
+
+    if not ok then
+        Util.error(tostring(err))
+    end
 end
 
 --- Run the command and append the output to the buffer

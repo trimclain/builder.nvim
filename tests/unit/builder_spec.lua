@@ -12,6 +12,7 @@ describe("builder", function()
             type = "bot",
             autosave = false,
             measure_time = false,
+            async_build = false,
             commands = {
                 sh = "bash $path",
                 python = "python3 $path",
@@ -47,6 +48,33 @@ describe("builder", function()
 
         build_win = vim.api.nvim_get_current_win()
         assert.are.same({ "hello from bash" }, vim.api.nvim_buf_get_lines(0, 0, -1, false))
+    end)
+
+    it("builds a bash file asynchronously", function()
+        assert.are.equal(1, vim.fn.executable("bash"))
+
+        builder.setup({ async_build = true })
+
+        local file = dir .. "/async build.sh"
+        assert.are.equal(0, vim.fn.writefile({ "sleep 0.1", 'echo "hello from async bash"' }, file))
+
+        vim.cmd.edit(vim.fn.fnameescape(file))
+        source_file_buf = vim.api.nvim_get_current_buf()
+
+        vim.cmd("Build")
+
+        build_win = vim.api.nvim_get_current_win()
+        local build_buf = vim.api.nvim_get_current_buf()
+
+        assert.is_true(
+            vim.wait(5000, function()
+                return vim.api.nvim_buf_is_valid(build_buf)
+                    and vim.api.nvim_buf_get_lines(build_buf, 0, 1, false)[1] == "hello from async bash"
+            end, 10),
+            "Async build did not produce output within 5 seconds"
+        )
+
+        assert.are.same({ "hello from async bash" }, vim.api.nvim_buf_get_lines(build_buf, 0, -1, false))
     end)
 
     it("builds a python file whose path contains spaces using builder user command", function()

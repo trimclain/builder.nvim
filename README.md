@@ -77,6 +77,8 @@ Builder comes with the following defaults:
     line_number = false,
     -- automatically save before building
     autosave = true,
+    -- run builds asynchronously, keeping Neovim responsive while the command runs
+    async_build = true,
     -- keymaps to close the Builder buffer, same format as for vim.keymap.set
     close_keymaps = { "q", "<Esc>" },
      -- measure the time it took to build
